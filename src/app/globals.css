@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Nimbus";
+  src: url("/fonts/NimbusRomNo9L-Med.otf") format("otf"),
+    url("/fonts/NimbusRomNo9L-MedIta.otf") format("otf"),
+    url("/fonts/NimbusRomNo9L-Reg.otf") format("otf"),
+    url("/fonts/NimbusRomNo9L-RegIta.otf") format("otf");
+  font-style: normal;
+  font-weight: normal;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
