@@ -10,7 +10,7 @@ function App() {
 
   return (
     <Fragment>
-      <button className="btn">HELLO</button>
+      <button className="btn btn-primary">HELLO</button>
     </Fragment>
   );
 }
