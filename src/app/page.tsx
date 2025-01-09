@@ -4,13 +4,29 @@ import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
 import useStore from "@/store/useStore";
 import { Fragment } from "react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { Connector, useAccount, useConnect, useConnectors, useDisconnect } from "wagmi";
 
 function App() {
-  const account = useAccount();
   const { connect, connectors, isPending } = useConnect();
+  const { disconnect } = useDisconnect();
 
   const { walletDialogOpen, setWalletDialogOpen } = useStore();
+
+  const handleConnect = async (connector: Connector) => {
+    console.log("connector:", connector);
+    connect(
+      { connector },
+      {
+        onError: (error) => {
+          console.error("WAGMI error", error);
+          disconnect();
+        },
+        onSuccess: () => {
+          setWalletDialogOpen(false);
+        },
+      }
+    );
+  };
 
   return (
     <Fragment>
@@ -27,8 +43,7 @@ function App() {
             <li key={connector.id} className="mb-2">
               <button
                 className="btn btn-secondary w-full"
-                disabled={!isPending}
-                onClick={() => connect({ connector })}
+                onClick={() => handleConnect(connector)}
               >
                 {connector.name}
                 {isPending && "..."}
