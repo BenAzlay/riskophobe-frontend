@@ -2,7 +2,7 @@ import useStore from "@/store/useStore";
 import React, { Fragment, useState } from "react";
 import { useAccount, useDisconnect } from "wagmi";
 import Modal from "./Modal";
-import { addressShorten } from "@/app/utils/utilFunc";
+import { addressShorten } from "@/utils/utilFunc";
 
 const Navbar: React.FC = () => {
   const { setWalletDialogOpen } = useStore();

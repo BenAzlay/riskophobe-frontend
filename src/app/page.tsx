@@ -3,14 +3,32 @@
 import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
 import useStore from "@/store/useStore";
-import { Fragment } from "react";
-import { Connector, useAccount, useConnect, useConnectors, useDisconnect } from "wagmi";
+import { Fragment, useEffect } from "react";
+import { Connector, useConnect, useDisconnect } from "wagmi";
 
 function App() {
   const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
 
-  const { walletDialogOpen, setWalletDialogOpen } = useStore();
+  const { walletDialogOpen, setWalletDialogOpen, setOffers } = useStore();
+
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const response = await fetch('/api/fetchOffers');
+        if (!response.ok) {
+          throw new Error('Failed to fetch offers');
+        }
+        const data = await response.json();
+        console.log(`data:`, data)
+        setOffers(data.offers);
+      } catch (e) {
+        console.error("fetchOffers ERROR", e);
+      }
+    };
+
+    fetchOffers();
+  }, []);
 
   const handleConnect = async (connector: Connector) => {
     console.log("connector:", connector);
