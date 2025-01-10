@@ -21,3 +21,11 @@ body {
 html {
   scrollbar-gutter: auto !important;
 }
+
+.navlink {
+  @apply btn btn-ghost normal-case text-lg;
+}
+
+.navlink-active {
+  @apply text-white font-bold;
+}

@@ -1,30 +1,33 @@
-import "../styles/globals.css";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { headers } from "next/headers";
-import { type ReactNode } from "react";
-import { cookieToInitialState } from "wagmi";
+"use client";
 
-import { getConfig } from "../wagmi";
+import "../styles/globals.css";
+import { Inter } from "next/font/google";
+import { Fragment, type ReactNode } from "react";
+
 import { Providers } from "./providers";
+import Navbar from "@/components/Navbar";
+import Head from "next/head";
+import ConnectWalletModal from "@/components/ConnectWalletModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Riskophobe",
-  description: "Options for crypto",
-};
-
-export default function RootLayout(props: { children: ReactNode }) {
-  const initialState = cookieToInitialState(
-    getConfig(),
-    headers().get("cookie")
-  );
+export default function RootLayout(props: { children: ReactNode }) {  
   return (
-    <html lang="en" data-theme="riskophobe">
-      <body className={inter.className}>
-        <Providers initialState={initialState}>{props.children}</Providers>
-      </body>
-    </html>
+    <Fragment>
+      <Head>
+        <title>Riskophobe</title>
+        <meta name="description" content="Options for crypto" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+      <html lang="en" data-theme="riskophobe">
+        <body className={inter.className}>
+          <Providers>
+            <Navbar />
+            {props.children}
+            <ConnectWalletModal />
+          </Providers>
+        </body>
+      </html>
+    </Fragment>
   );
 }
