@@ -4,9 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import {
   calculateExchangeRate,
   convertQuantityFromWei,
-  convertQuantityToWei,
-  getCollateralForOneSoldToken,
-  getTokenDetails,
+  convertQuantityToWei, getTokenDetails
 } from "@/utils/utilFunc";
 import CONSTANTS from "@/utils/constants";
 import ERC20Token from "../types/ERC20Token";
@@ -57,8 +55,8 @@ const Sell = () => {
   );
 
   const collateralPerSoldToken = useMemo(() => {
-    return new Decimal(formattedCollateralAmount).div(formattedSoldTokenAmount).toString();
-  }, [formattedCollateralAmount, formattedSoldTokenAmount]);
+    return new Decimal(formattedCollateralAmount).div(formattedSoldTokenAmount).toFixed(collateralToken?.decimals ?? 18);
+  }, [formattedCollateralAmount, formattedSoldTokenAmount, collateralToken?.decimals]);
 
   useEffect(() => {
     const getAndSetTokensList = async () => {

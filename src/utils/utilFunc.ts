@@ -157,23 +157,3 @@ export const calculateExchangeRate = (
     return "0";
   }
 };
-
-/**
- * Calculates the collateral amount for 1 unit of the sold token.
- * @param soldTokenAmount - The amount of sold tokens.
- * @param collateralTokenAmount - The amount of collateral tokens.
- * @returns The collateral amount for 1 sold token as a string.
- */
-export const getCollateralForOneSoldToken = (
-  soldTokenAmount: number | string,
-  exchangeRate: number | string
-): string => {
-  try {
-    // Use Decimal for precision
-    const collateralPerSold = new Decimal(exchangeRate).div(soldTokenAmount);
-
-    return collateralPerSold.toFixed(18); // Return up to 18 decimals for precision
-  } catch (e) {
-    return "0";
-  }
-};
