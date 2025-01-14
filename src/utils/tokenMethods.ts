@@ -11,28 +11,30 @@ import { readContract, readContracts } from "wagmi/actions";
  * @returns A promise resolving to an array of ERC20Token objects.
  */
 export const getTokenDetails = async (
-  tokenAddresses: string[],
+  tokenAddresses: string[]
 ): Promise<ERC20Token[]> => {
-
-  const wagmiContracts = tokenAddresses.map((address) => ({
-    address: address as `0x${string}`,
-    abi: erc20Abi,
-    chainId: 8453,
-  }));
-
-  const symbolCalls = wagmiContracts.map((contract) => ({
-    ...contract,
-    functionName: "symbol",
-  }));
-
-  const decimalsCalls = wagmiContracts.map((contract) => ({
-    ...contract,
-    functionName: "decimals",
-  }));
-
-  const config = getConfig();
-
   try {
+    if (!tokenAddresses.every((address) => ethers.isAddress(address)))
+      throw new Error("Invalid addresses");
+
+    const wagmiContracts = tokenAddresses.map((address) => ({
+      address: address as `0x${string}`,
+      abi: erc20Abi,
+      chainId: 8453,
+    }));
+
+    const symbolCalls = wagmiContracts.map((contract) => ({
+      ...contract,
+      functionName: "symbol",
+    }));
+
+    const decimalsCalls = wagmiContracts.map((contract) => ({
+      ...contract,
+      functionName: "decimals",
+    }));
+
+    const config = getConfig();
+
     const rawResults = await readContracts(config, {
       contracts: [...symbolCalls, ...decimalsCalls],
     });
@@ -60,15 +62,15 @@ export const getTokenDetails = async (
 
 export const getTokenBalance = async (
   tokenAddress: string | undefined,
-  userAddress: string | undefined,
+  userAddress: string | undefined
 ): Promise<string> => {
   try {
     if (!ethers.isAddress(userAddress)) {
-        throw new Error("Invalid user address");
+      throw new Error("Invalid user address");
     }
 
     if (!ethers.isAddress(tokenAddress)) {
-        throw new Error("Invalid ERC20 token address");
+      throw new Error("Invalid ERC20 token address");
     }
 
     const config = getConfig();
@@ -84,6 +86,41 @@ export const getTokenBalance = async (
     return String(result);
   } catch (error) {
     console.error("getTokenDetails ERROR:", error);
+    return "0";
+  }
+};
+
+export const getTokenAllowance = async (
+  tokenAddress: string | undefined,
+  userAddress: string | undefined,
+  contractAddress: string | undefined
+): Promise<string> => {
+  try {
+    if (!ethers.isAddress(userAddress)) {
+      throw new Error("Invalid user address");
+    }
+
+    if (!ethers.isAddress(tokenAddress)) {
+      throw new Error("Invalid ERC20 token address");
+    }
+
+    if (!ethers.isAddress(contractAddress)) {
+      throw new Error("Invalid contract address");
+    }
+
+    const config = getConfig();
+
+    const result = await readContract(config, {
+      address: tokenAddress as `0x${string}`,
+      abi: erc20Abi,
+      chainId: 8453,
+      functionName: "allowance",
+      args: [userAddress as `0x${string}`, contractAddress as `0x${string}`],
+    });
+
+    return String(result);
+  } catch (error) {
+    console.error("getTokenAllowance ERROR:", error);
     return "0";
   }
 };

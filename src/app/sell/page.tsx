@@ -16,14 +16,20 @@ import Decimal from "decimal.js";
 import DateField from "@/components/DateField";
 import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
-import { zeroAddress } from "viem";
+import { erc20Abi, zeroAddress } from "viem";
 import { getConfig } from "@/wagmi";
 import { useAccount, useConnect, useWriteContract } from "wagmi";
-import { getTokenBalance, getTokenDetails } from "@/utils/tokenMethods";
+import {
+  getTokenAllowance,
+  getTokenBalance,
+  getTokenDetails,
+} from "@/utils/tokenMethods";
 import {
   useAsyncEffect,
   useVisibilityIntervalEffect,
 } from "@/utils/customHooks";
+import { ethers } from "ethers";
+import SignInButton from "@/components/SignInButton";
 
 const currentDate = new Date();
 const oneMonthFromNow: Date = new Date(
@@ -31,11 +37,23 @@ const oneMonthFromNow: Date = new Date(
 );
 
 const Sell = () => {
+  const config = getConfig();
+
   const { connectors } = useConnect();
-  const { data: hash, isPending, writeContract } = useWriteContract();
+  const {
+    data: createOfferHash,
+    isPending: createOfferIsPending,
+    writeContract: writeCreateOffer,
+  } = useWriteContract();
+  const {
+    data: approveHash,
+    isPending: approveIsPending,
+    writeContract: writeApprove,
+  } = useWriteContract();
   const { address: connectedAddress } = useAccount();
 
   const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
+  const [soldTokenAllowance, setSoldTokenAllowance] = useState<string>("0");
 
   const [tokensList, setTokensList] = useState<ERC20Token[]>([]);
   const [soldToken, setSoldToken] = useState<ERC20Token | null>(null);
@@ -47,8 +65,6 @@ const Sell = () => {
   const [creatorFee, setCreatorFee] = useState(0); // fee in basis points
   const [startDate, setStartDate] = useState<Date | null>(currentDate);
   const [endDate, setEndDate] = useState<Date | null>(oneMonthFromNow);
-
-  const { WETH, WBTC, USDC } = CONSTANTS.TOKEN_ADDRESSES;
 
   const soldTokenAmountWei = useMemo(
     () => convertQuantityToWei(soldTokenAmount, soldToken?.decimals ?? 18),
@@ -88,10 +104,21 @@ const Sell = () => {
     collateralToken?.decimals,
   ]);
 
-  const formattedSoldTokenBalance = useMemo(() => convertQuantityFromWei(soldTokenBalance, soldToken?.decimals ?? 18), [soldTokenBalance, soldToken?.decimals]);
+  const hasEnoughSoldTokenAllowance = useMemo(() => {
+    if (new Decimal(soldTokenAmountWei).lte(0))
+      return new Decimal(soldTokenAllowance).gt(0);
+    return new Decimal(soldTokenAllowance).gte(soldTokenAmountWei);
+  }, [soldTokenAmountWei, soldTokenAllowance]);
+
+  const formattedSoldTokenBalance = useMemo(
+    () => convertQuantityFromWei(soldTokenBalance, soldToken?.decimals ?? 18),
+    [soldTokenBalance, soldToken?.decimals]
+  );
 
   useEffect(() => {
     const getAndSetTokensList = async () => {
+      const { WETH, WBTC, USDC } = CONSTANTS.TOKEN_ADDRESSES;
+
       const tokenDetails = await getTokenDetails([WETH, USDC, WBTC]);
       console.log(`tokenDetails:`, tokenDetails);
       setTokensList(tokenDetails);
@@ -99,15 +126,39 @@ const Sell = () => {
       setCollateralToken(tokenDetails[1]);
     };
     getAndSetTokensList();
-  }, []);
+  }, [CONSTANTS.TOKEN_ADDRESSES]);
 
-  const soldTokenBalanceGetter = async () => {
-    return await getTokenBalance(soldToken?.address, connectedAddress);
+  const getSoldTokenBalance = async () =>
+    await getTokenBalance(soldToken?.address, connectedAddress);
+  const getSoldTokenAllowance = async () =>
+    await getTokenAllowance(
+      soldToken?.address,
+      connectedAddress,
+      CONSTANTS.RISKOPHOBE_CONTRACT
+    );
+
+  const soldTokenBalanceAndAllowanceGetter = async (): Promise<
+    [string, string]
+  > => {
+    if (
+      !ethers.isAddress(soldToken?.address) ||
+      !ethers.isAddress(connectedAddress)
+    )
+      return ["0", "0"];
+    return await Promise.all([getSoldTokenBalance(), getSoldTokenAllowance()]);
   };
-  const soldTokenBalanceSetter = (newBalance: string) => {
+  const soldTokenBalanceAndAllowanceSetter = ([newBalance, newAllowance]: [
+    string,
+    string,
+  ]): void => {
     setSoldTokenBalance(newBalance);
-  }
-  useAsyncEffect(soldTokenBalanceGetter, soldTokenBalanceSetter, [connectedAddress, soldToken?.address]);
+    setSoldTokenAllowance(newAllowance);
+  };
+  useAsyncEffect(
+    soldTokenBalanceAndAllowanceGetter,
+    soldTokenBalanceAndAllowanceSetter,
+    [connectedAddress, soldToken?.address]
+  );
 
   const onChangeStartDate = (_startDate: Date | null) => {
     setStartDate(_startDate);
@@ -115,6 +166,27 @@ const Sell = () => {
 
   const onChangeEndDate = (_endDate: Date | null) => {
     setEndDate(_endDate);
+  };
+
+  const handleApprove = async () => {
+    try {
+      const soldTokenAddress: string = soldToken?.address ?? zeroAddress;
+
+      const { request } = await simulateContract(config, {
+        abi: erc20Abi,
+        address: soldTokenAddress as `0x${string}`,
+        functionName: "approve",
+        args: [
+          CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+          BigInt(soldTokenAmountWei),
+        ],
+        connector: connectors[0],
+      });
+      console.log(`handleCreateOffer request:`, request);
+      writeApprove(request);
+    } catch (e) {
+      console.error("handleApprove ERROR", e);
+    }
   };
 
   const handleCreateOffer = async () => {
@@ -128,11 +200,6 @@ const Sell = () => {
       const currentTs = getCurrentTimestampSeconds();
       if (currentTs >= startDateTs - 300) startDateTs += 300;
       const endDateTs: number = getTimestampSecondsFromDate(endDate);
-      console.log(`handleCreateOffer creatorFee:`, creatorFee);
-      const config = getConfig();
-      const { connector } = getAccount(config);
-      console.log(`handleCreateOffer connector:`, connector);
-      console.log(`handleCreateOffer connectors:`, connectors);
 
       const { request } = await simulateContract(config, {
         abi: RiskophobeProtocolAbi,
@@ -150,10 +217,35 @@ const Sell = () => {
         connector: connectors[0],
       });
       console.log(`handleCreateOffer request:`, request);
-      writeContract(request);
+      writeCreateOffer(request);
     } catch (e) {
       console.error("handleCreateOffer ERROR", e);
     }
+  };
+
+  const transactionButton = () => {
+    if (!connectedAddress) return <SignInButton />;
+    if (!hasEnoughSoldTokenAllowance)
+      return (
+        <button
+          type="button"
+          disabled={!!hasEnoughSoldTokenAllowance || new Decimal(soldTokenAmountWei).lte(0)}
+          onClick={handleApprove}
+          className="btn btn-primary w-full"
+        >
+          APPROVE {soldToken?.symbol}
+        </button>
+      );
+    return (
+      <button
+        type="button"
+        disabled={!hasEnoughSoldTokenAllowance}
+        onClick={handleCreateOffer}
+        className="btn btn-primary w-full"
+      >
+        CREATE OFFER
+      </button>
+    );
   };
 
   return (
@@ -227,15 +319,7 @@ const Sell = () => {
         </div>
 
         {/* Submit */}
-        <div>
-          <button
-            type="button"
-            onClick={handleCreateOffer}
-            className="btn btn-primary w-full"
-          >
-            Create Offer
-          </button>
-        </div>
+        {transactionButton()}
       </form>
     </div>
   );
