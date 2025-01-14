@@ -5,6 +5,7 @@ import {
   calculateExchangeRate,
   convertQuantityFromWei,
   convertQuantityToWei,
+  getCurrentTimestampSeconds,
   getTimestampSecondsFromDate,
   getTokenDetails,
 } from "@/utils/utilFunc";
@@ -14,10 +15,11 @@ import TokensDropdown from "@/components/TokensDropdown";
 import TokenAmountField from "@/components/TokenAmountField";
 import Decimal from "decimal.js";
 import DateField from "@/components/DateField";
-import { simulateContract } from "wagmi/actions";
+import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import { zeroAddress } from "viem";
 import { getConfig } from "@/wagmi";
+import { useConnect, useWriteContract } from "wagmi";
 
 const currentDate = new Date();
 const oneMonthFromNow: Date = new Date(
@@ -25,6 +27,9 @@ const oneMonthFromNow: Date = new Date(
 );
 
 const Sell = () => {
+  const { connectors } = useConnect();
+  const { data: hash, isPending, writeContract } = useWriteContract();
+
   const [tokensList, setTokensList] = useState<ERC20Token[]>([]);
   const [soldToken, setSoldToken] = useState<ERC20Token | null>(null);
   const [collateralToken, setCollateralToken] = useState<ERC20Token | null>(
@@ -97,16 +102,22 @@ const Sell = () => {
 
   const handleCreateOffer = async () => {
     try {
-      
-      const collateralTokenAddress: string = collateralToken?.address ?? zeroAddress;
+      const collateralTokenAddress: string =
+        collateralToken?.address ?? zeroAddress;
       const soldTokenAddress: string = soldToken?.address ?? zeroAddress;
-      
-      const startDateTs: number = getTimestampSecondsFromDate(startDate);
+
+      let startDateTs: number = getTimestampSecondsFromDate(startDate);
+      // Make sure start date is at least 5 minutes in the future to account for tx time
+      const currentTs = getCurrentTimestampSeconds();
+      if (currentTs >= startDateTs - 300) startDateTs += 300;
       const endDateTs: number = getTimestampSecondsFromDate(endDate);
-      console.log(`handleCreateOffer creatorFee:`, creatorFee)
+      console.log(`handleCreateOffer creatorFee:`, creatorFee);
       const config = getConfig();
-  
-      const result = await simulateContract(config, {
+      const { connector } = getAccount(config);
+      console.log(`handleCreateOffer connector:`, connector);
+      console.log(`handleCreateOffer connectors:`, connectors);
+
+      const { request } = await simulateContract(config, {
         abi: RiskophobeProtocolAbi,
         address: CONSTANTS.RISKOPHOBE_CONTRACT[11155111] as `0x${string}`,
         functionName: "createOffer",
@@ -119,8 +130,10 @@ const Sell = () => {
           startDateTs,
           endDateTs,
         ],
+        connector: connectors[0],
       });
-      console.log(`handleCreateOffer result:`, result)
+      console.log(`handleCreateOffer request:`, request);
+      writeContract(request);
     } catch (e) {
       console.error("handleCreateOffer ERROR", e);
     }
