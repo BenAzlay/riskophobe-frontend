@@ -222,6 +222,24 @@ const Sell = () => {
     }
   };
 
+  // useEffect to handle createOffer transaction success
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const _balance = await getSoldTokenBalance();
+        console.log(`NEW _balance:`, _balance);
+        setSoldTokenBalance(_balance);
+      } catch (error) {
+        console.error("Error fetching balance", error);
+      }
+    };
+
+    if (createOfferSuccess) {
+      console.log("createOffer successful!");
+      fetchBalance();
+    }
+  }, [createOfferSuccess]);
+
   const handleCreateOffer = async () => {
     try {
       const collateralTokenAddress: string =
