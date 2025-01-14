@@ -1,8 +1,6 @@
-const {nextui} = require('@nextui-org/theme');
 export default {
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/@nextui-org/theme/dist/components/(date-picker|button|ripple|spinner|calendar|date-input|form|popover).js"
   ],
   darkMode: 'class',
   theme: {
@@ -31,5 +29,5 @@ export default {
       },
     ],
   },
-  plugins: [require("daisyui"),nextui()],
+  plugins: [require("daisyui")],
 }
