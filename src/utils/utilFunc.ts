@@ -11,7 +11,10 @@ import { readContracts } from "wagmi/actions";
  * @param date - The Date object to convert.
  * @returns The Unix timestamp in seconds.
  */
-export const getTimestampSecondsFromDate = (date: Date): number => {
+export const getTimestampSecondsFromDate = (date: Date | null): number => {
+  if (date === null) {
+    return 0;
+  }
   return Math.floor(date.getTime() / 1000);
 };
 

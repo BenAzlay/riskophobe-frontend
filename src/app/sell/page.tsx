@@ -5,7 +5,7 @@ import {
   calculateExchangeRate,
   convertQuantityFromWei,
   convertQuantityToWei,
-  getCurrentTimestampSeconds,
+  getTimestampSecondsFromDate,
   getTokenDetails,
 } from "@/utils/utilFunc";
 import CONSTANTS from "@/utils/constants";
@@ -14,6 +14,15 @@ import TokensDropdown from "@/components/TokensDropdown";
 import TokenAmountField from "@/components/TokenAmountField";
 import Decimal from "decimal.js";
 import DateField from "@/components/DateField";
+import { simulateContract } from "wagmi/actions";
+import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
+import { zeroAddress } from "viem";
+import { getConfig } from "@/wagmi";
+
+const currentDate = new Date();
+const oneMonthFromNow: Date = new Date(
+  new Date().setMonth(new Date().getMonth() + 3)
+);
 
 const Sell = () => {
   const [tokensList, setTokensList] = useState<ERC20Token[]>([]);
@@ -23,9 +32,9 @@ const Sell = () => {
   );
   const [soldTokenAmount, setSoldTokenAmount] = useState("");
   const [collateralAmount, setCollateralAmount] = useState("");
-  const [userFee, setUserFee] = useState(0); // fee in basis points
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState("");
+  const [creatorFee, setCreatorFee] = useState(0); // fee in basis points
+  const [startDate, setStartDate] = useState<Date | null>(currentDate);
+  const [endDate, setEndDate] = useState<Date | null>(oneMonthFromNow);
 
   const { WETH, WBTC, USDC } = CONSTANTS.TOKEN_ADDRESSES[11155111];
 
@@ -69,7 +78,7 @@ const Sell = () => {
 
   useEffect(() => {
     const getAndSetTokensList = async () => {
-      const tokenDetails = await getTokenDetails([WETH, WBTC, USDC], 11155111);
+      const tokenDetails = await getTokenDetails([WETH, USDC, WBTC], 11155111);
       console.log(`tokenDetails:`, tokenDetails);
       setTokensList(tokenDetails);
       setSoldToken(tokenDetails[0]);
@@ -79,11 +88,43 @@ const Sell = () => {
   }, []);
 
   const onChangeStartDate = (_startDate: Date | null) => {
-    console.log(`_startDate:`, _startDate);
     setStartDate(_startDate);
   };
 
-  const handleCreateOffer = async () => {};
+  const onChangeEndDate = (_endDate: Date | null) => {
+    setEndDate(_endDate);
+  };
+
+  const handleCreateOffer = async () => {
+    try {
+      
+      const collateralTokenAddress: string = collateralToken?.address ?? zeroAddress;
+      const soldTokenAddress: string = soldToken?.address ?? zeroAddress;
+      
+      const startDateTs: number = getTimestampSecondsFromDate(startDate);
+      const endDateTs: number = getTimestampSecondsFromDate(endDate);
+      console.log(`handleCreateOffer creatorFee:`, creatorFee)
+      const config = getConfig();
+  
+      const result = await simulateContract(config, {
+        abi: RiskophobeProtocolAbi,
+        address: CONSTANTS.RISKOPHOBE_CONTRACT[11155111] as `0x${string}`,
+        functionName: "createOffer",
+        args: [
+          collateralTokenAddress as `0x${string}`,
+          soldTokenAddress as `0x${string}`,
+          BigInt(soldTokenAmountWei),
+          BigInt(exchangeRate),
+          creatorFee,
+          startDateTs,
+          endDateTs,
+        ],
+      });
+      console.log(`handleCreateOffer result:`, result)
+    } catch (e) {
+      console.error("handleCreateOffer ERROR", e);
+    }
+  };
 
   return (
     <div className="p-6">
@@ -133,24 +174,23 @@ const Sell = () => {
             type="range"
             min={0}
             max={1000}
-            value={userFee}
-            onChange={(e) => setUserFee(Number(e.target.value))}
+            value={creatorFee}
+            onChange={(e) => setCreatorFee(Number(e.target.value))}
             className="range"
           />
-          <div className="text-sm text-gray-500">{userFee / 100}%</div>
+          <div className="text-sm text-gray-500">{creatorFee / 100}%</div>
         </div>
         {/* Dates */}
         <div>
-          <DateField selectedDate={startDate} onSelectDate={onChangeStartDate} />
+          <label className="block text-sm font-medium">Start Date</label>
+          <DateField
+            selectedDate={startDate}
+            onSelectDate={onChangeStartDate}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium">End Date</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="input input-bordered w-full"
-          />
+          <DateField selectedDate={endDate} onSelectDate={onChangeEndDate} />
         </div>
 
         {/* Submit */}
