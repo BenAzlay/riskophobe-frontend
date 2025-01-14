@@ -50,6 +50,10 @@ const Sell = () => {
     isPending: createOfferIsPending,
     writeContract: writeCreateOffer,
   } = useWriteContract();
+  const { isLoading: createOfferIsConfirming, isSuccess: createOfferSuccess } =
+    useWaitForTransactionReceipt({
+      hash: createOfferHash,
+    });
   const {
     data: approveHash,
     isPending: approveIsPending,
@@ -276,10 +280,17 @@ const Sell = () => {
     return (
       <button
         type="button"
-        disabled={!hasEnoughSoldTokenAllowance}
+        disabled={
+          !hasEnoughSoldTokenAllowance ||
+          createOfferIsConfirming ||
+          createOfferIsPending
+        }
         onClick={handleCreateOffer}
         className="btn btn-primary w-full"
       >
+        {createOfferIsConfirming || createOfferIsPending ? (
+          <span className="loading loading-spinner"></span>
+        ) : null}
         CREATE OFFER
       </button>
     );
@@ -348,11 +359,16 @@ const Sell = () => {
           <DateField
             selectedDate={startDate}
             onSelectDate={onChangeStartDate}
+            minDate={new Date()}
           />
         </div>
         <div>
           <label className="block text-sm font-medium">End Date</label>
-          <DateField selectedDate={endDate} onSelectDate={onChangeEndDate} />
+          <DateField
+            selectedDate={endDate}
+            onSelectDate={onChangeEndDate}
+            minDate={startDate ?? new Date()}
+          />
         </div>
 
         {/* Submit */}
