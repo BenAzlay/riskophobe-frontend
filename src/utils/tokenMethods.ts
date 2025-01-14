@@ -8,21 +8,16 @@ import { readContract, readContracts } from "wagmi/actions";
  * Fetches token details (symbol, decimals, and logo) for the provided token addresses.
  *
  * @param tokenAddresses - Array of token contract addresses.
- * @param networkId - The network ID (1 for Ethereum mainnet, 11155111 for Sepolia).
  * @returns A promise resolving to an array of ERC20Token objects.
  */
 export const getTokenDetails = async (
   tokenAddresses: string[],
-  networkId: 1 | 11155111 | undefined
 ): Promise<ERC20Token[]> => {
-  if (!networkId) {
-    throw new Error("Network ID must be specified.");
-  }
 
   const wagmiContracts = tokenAddresses.map((address) => ({
     address: address as `0x${string}`,
     abi: erc20Abi,
-    chainId: networkId,
+    chainId: 8453,
   }));
 
   const symbolCalls = wagmiContracts.map((contract) => ({
@@ -66,13 +61,8 @@ export const getTokenDetails = async (
 export const getTokenBalance = async (
   tokenAddress: string | undefined,
   userAddress: string | undefined,
-  networkId: 1 | 11155111 | undefined
 ): Promise<string> => {
   try {
-    if (!networkId) {
-      throw new Error("Network ID must be specified.");
-    }
-
     if (!ethers.isAddress(userAddress)) {
         throw new Error("Invalid user address");
     }
@@ -86,7 +76,7 @@ export const getTokenBalance = async (
     const result = await readContract(config, {
       address: tokenAddress as `0x${string}`,
       abi: erc20Abi,
-      chainId: networkId,
+      chainId: 8453,
       functionName: "balanceOf",
       args: [userAddress as `0x${string}`],
     });

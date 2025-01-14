@@ -4,7 +4,7 @@ import { GraphQLClient } from "graphql-request";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const client = new GraphQLClient(
-  CONSTANTS.RISKOPHOBE_SUBGRAPH_ENDPOINT[11155111],
+  CONSTANTS.RISKOPHOBE_SUBGRAPH_ENDPOINT,
   {
     headers: {
       Authorization: `Bearer ${process.env.GRAPHQL_API_KEY}`,

@@ -48,7 +48,7 @@ const Sell = () => {
   const [startDate, setStartDate] = useState<Date | null>(currentDate);
   const [endDate, setEndDate] = useState<Date | null>(oneMonthFromNow);
 
-  const { WETH, WBTC, USDC } = CONSTANTS.TOKEN_ADDRESSES[11155111];
+  const { WETH, WBTC, USDC } = CONSTANTS.TOKEN_ADDRESSES;
 
   const soldTokenAmountWei = useMemo(
     () => convertQuantityToWei(soldTokenAmount, soldToken?.decimals ?? 18),
@@ -88,9 +88,11 @@ const Sell = () => {
     collateralToken?.decimals,
   ]);
 
+  const formattedSoldTokenBalance = useMemo(() => convertQuantityFromWei(soldTokenBalance, soldToken?.decimals ?? 18), [soldTokenBalance, soldToken?.decimals]);
+
   useEffect(() => {
     const getAndSetTokensList = async () => {
-      const tokenDetails = await getTokenDetails([WETH, USDC, WBTC], 11155111);
+      const tokenDetails = await getTokenDetails([WETH, USDC, WBTC]);
       console.log(`tokenDetails:`, tokenDetails);
       setTokensList(tokenDetails);
       setSoldToken(tokenDetails[0]);
@@ -100,7 +102,7 @@ const Sell = () => {
   }, []);
 
   const soldTokenBalanceGetter = async () => {
-    return await getTokenBalance(soldToken?.address, connectedAddress, 11155111);
+    return await getTokenBalance(soldToken?.address, connectedAddress);
   };
   const soldTokenBalanceSetter = (newBalance: string) => {
     setSoldTokenBalance(newBalance);
@@ -134,7 +136,7 @@ const Sell = () => {
 
       const { request } = await simulateContract(config, {
         abi: RiskophobeProtocolAbi,
-        address: CONSTANTS.RISKOPHOBE_CONTRACT[11155111] as `0x${string}`,
+        address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
         functionName: "createOffer",
         args: [
           collateralTokenAddress as `0x${string}`,
@@ -164,7 +166,7 @@ const Sell = () => {
             amount={soldTokenAmount}
             onChangeAmount={(amount) => setSoldTokenAmount(amount)}
             showTokenBalance={true}
-            tokenBalance={soldTokenBalance}
+            tokenBalance={formattedSoldTokenBalance}
             tokenComponent={
               <TokensDropdown
                 tokens={tokensList}

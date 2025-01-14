@@ -29,8 +29,8 @@ const TokenAmountField: FC<TokenAmountFieldProps> = ({
         {tokenComponent}
       </div>
       {showTokenBalance ? (
-        <div className="flex justify-end">
-          <p>Balance: {abbreviateAmount(tokenBalance)}</p>
+        <div className="flex justify-end cursor-pointer" onClick={() => onChangeAmount(tokenBalance)}>
+          <p>Balance: {abbreviateAmount(tokenBalance, '', 3)}</p>
         </div>
       ) : null}
     </div>
