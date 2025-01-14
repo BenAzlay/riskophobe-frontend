@@ -7,7 +7,6 @@ import {
   convertQuantityToWei,
   getCurrentTimestampSeconds,
   getTimestampSecondsFromDate,
-  getTokenDetails,
 } from "@/utils/utilFunc";
 import CONSTANTS from "@/utils/constants";
 import ERC20Token from "../types/ERC20Token";
@@ -19,7 +18,12 @@ import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import { zeroAddress } from "viem";
 import { getConfig } from "@/wagmi";
-import { useConnect, useWriteContract } from "wagmi";
+import { useAccount, useConnect, useWriteContract } from "wagmi";
+import { getTokenBalance, getTokenDetails } from "@/utils/tokenMethods";
+import {
+  useAsyncEffect,
+  useVisibilityIntervalEffect,
+} from "@/utils/customHooks";
 
 const currentDate = new Date();
 const oneMonthFromNow: Date = new Date(
@@ -29,6 +33,9 @@ const oneMonthFromNow: Date = new Date(
 const Sell = () => {
   const { connectors } = useConnect();
   const { data: hash, isPending, writeContract } = useWriteContract();
+  const { address: connectedAddress } = useAccount();
+
+  const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
 
   const [tokensList, setTokensList] = useState<ERC20Token[]>([]);
   const [soldToken, setSoldToken] = useState<ERC20Token | null>(null);
@@ -92,6 +99,14 @@ const Sell = () => {
     getAndSetTokensList();
   }, []);
 
+  const soldTokenBalanceGetter = async () => {
+    return await getTokenBalance(soldToken?.address, connectedAddress, 11155111);
+  };
+  const soldTokenBalanceSetter = (newBalance: string) => {
+    setSoldTokenBalance(newBalance);
+  }
+  useAsyncEffect(soldTokenBalanceGetter, soldTokenBalanceSetter, [connectedAddress, soldToken?.address]);
+
   const onChangeStartDate = (_startDate: Date | null) => {
     setStartDate(_startDate);
   };
@@ -148,6 +163,8 @@ const Sell = () => {
           <TokenAmountField
             amount={soldTokenAmount}
             onChangeAmount={(amount) => setSoldTokenAmount(amount)}
+            showTokenBalance={true}
+            tokenBalance={soldTokenBalance}
             tokenComponent={
               <TokensDropdown
                 tokens={tokensList}
@@ -162,6 +179,7 @@ const Sell = () => {
           <TokenAmountField
             amount={collateralAmount}
             onChangeAmount={(amount) => setCollateralAmount(amount)}
+            showTokenBalance={false}
             tokenComponent={
               <TokensDropdown
                 tokens={tokensList}

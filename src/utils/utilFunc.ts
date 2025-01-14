@@ -85,65 +85,6 @@ export const convertQuantityFromWei = (
 };
 
 /**
- * Fetches token details (symbol, decimals, and logo) for the provided token addresses.
- *
- * @param tokenAddresses - Array of token contract addresses.
- * @param networkId - The network ID (1 for Ethereum mainnet, 11155111 for Sepolia).
- * @returns A promise resolving to an array of ERC20Token objects.
- */
-export const getTokenDetails = async (
-  tokenAddresses: string[],
-  networkId: 1 | 11155111 | undefined
-): Promise<ERC20Token[]> => {
-  if (!networkId) {
-    throw new Error("Network ID must be specified.");
-  }
-
-  const wagmiContracts = tokenAddresses.map((address) => ({
-    address: address as `0x${string}`,
-    abi: erc20Abi,
-    chainId: networkId,
-  }));
-
-  const symbolCalls = wagmiContracts.map((contract) => ({
-    ...contract,
-    functionName: "symbol",
-  }));
-
-  const decimalsCalls = wagmiContracts.map((contract) => ({
-    ...contract,
-    functionName: "decimals",
-  }));
-
-  const config = getConfig();
-
-  try {
-    const rawResults = await readContracts(config, {
-      contracts: [...symbolCalls, ...decimalsCalls],
-    });
-
-    const results = rawResults.map(({ result }) => result);
-
-    return tokenAddresses.map((address, index, self) => {
-      const symbol: string = results[index] as string;
-      const decimals: number = results[index + self.length] as number;
-
-      const logo: string = `/tokenLogos/${symbol}.png`;
-
-      return {
-        address,
-        symbol,
-        decimals,
-        logo,
-      };
-    });
-  } catch (error) {
-    console.error("getTokenDetails ERROR:", error);
-    throw new Error("Failed to fetch token details.");
-  }
-};
-
-/**
  * Calculates the exchange rate for the Riskophobe Protocol.
  * @param soldTokenAmount - The amount of sold tokens.
  * @param collateralTokenAmount - The amount of collateral tokens.
@@ -160,3 +101,60 @@ export const calculateExchangeRate = (
     return "0";
   }
 };
+
+/**
+ * Abbreviates a numeric amount with a prefix, suffix, and optional decimals.
+ *
+ * @param amount - The numeric amount to abbreviate.
+ * @param prefix - An optional prefix to prepend to the result. Defaults to an empty string.
+ * @param decimals - The number of decimal places to round to. Defaults to 0.
+ * @returns A formatted and abbreviated amount as a string.
+ */
+export const abbreviateAmount = (
+  amount: string | number,
+  prefix: string = "",
+  decimals: number = 0
+): string => {
+  const bnAmount = new Decimal(amount ?? 0);
+  
+  if (bnAmount.eq(0)) return `${prefix}0`; // Equal to 0
+
+  const smallerThanLimit = new Decimal(1).div(10 ** decimals).toString();
+  const isNegative = bnAmount.lt(0);
+
+  // Handle cases where the value is smaller than the limit
+  if (bnAmount.lt(smallerThanLimit) && !isNegative) {
+    return `<${prefix}${smallerThanLimit}`;
+  }
+  if (bnAmount.abs().lt(smallerThanLimit) && isNegative) {
+    return `-${prefix}${smallerThanLimit}`;
+  }
+
+  const bnAmountAbs = bnAmount.abs();
+  let exponent = 0;
+  let suffix = "";
+
+  // Determine the appropriate abbreviation suffix and exponent
+  if (bnAmountAbs.gte(10 ** 15)) {
+    exponent = 15;
+    suffix = "Q"; // Quadrillion
+  } else if (bnAmountAbs.gte(10 ** 12)) {
+    exponent = 12;
+    suffix = "T"; // Trillion
+  } else if (bnAmountAbs.gte(10 ** 9)) {
+    exponent = 9;
+    suffix = "B"; // Billion
+  } else if (bnAmountAbs.gte(10 ** 6)) {
+    exponent = 6;
+    suffix = "M"; // Million
+  } else if (bnAmountAbs.gte(10 ** 3)) {
+    exponent = 3;
+    suffix = "k"; // Thousand
+  }
+
+  // Calculate the value and round it to the specified number of decimals
+  const value = bnAmountAbs.div(10 ** exponent).toFixed(decimals);
+
+  return `${isNegative ? "-" : ""}${prefix}${value}${suffix}`;
+};
+
