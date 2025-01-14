@@ -4,13 +4,16 @@ import { useState, useEffect, useMemo } from "react";
 import {
   calculateExchangeRate,
   convertQuantityFromWei,
-  convertQuantityToWei, getTokenDetails
+  convertQuantityToWei,
+  getCurrentTimestampSeconds,
+  getTokenDetails,
 } from "@/utils/utilFunc";
 import CONSTANTS from "@/utils/constants";
 import ERC20Token from "../types/ERC20Token";
 import TokensDropdown from "@/components/TokensDropdown";
 import TokenAmountField from "@/components/TokenAmountField";
 import Decimal from "decimal.js";
+import DateField from "@/components/DateField";
 
 const Sell = () => {
   const [tokensList, setTokensList] = useState<ERC20Token[]>([]);
@@ -21,7 +24,7 @@ const Sell = () => {
   const [soldTokenAmount, setSoldTokenAmount] = useState("");
   const [collateralAmount, setCollateralAmount] = useState("");
   const [userFee, setUserFee] = useState(0); // fee in basis points
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState("");
 
   const { WETH, WBTC, USDC } = CONSTANTS.TOKEN_ADDRESSES[11155111];
@@ -55,8 +58,14 @@ const Sell = () => {
   );
 
   const collateralPerSoldToken = useMemo(() => {
-    return new Decimal(formattedCollateralAmount).div(formattedSoldTokenAmount).toFixed(collateralToken?.decimals ?? 18);
-  }, [formattedCollateralAmount, formattedSoldTokenAmount, collateralToken?.decimals]);
+    return new Decimal(formattedCollateralAmount)
+      .div(formattedSoldTokenAmount)
+      .toFixed(collateralToken?.decimals ?? 18);
+  }, [
+    formattedCollateralAmount,
+    formattedSoldTokenAmount,
+    collateralToken?.decimals,
+  ]);
 
   useEffect(() => {
     const getAndSetTokensList = async () => {
@@ -68,6 +77,11 @@ const Sell = () => {
     };
     getAndSetTokensList();
   }, []);
+
+  const onChangeStartDate = (_startDate: Date | null) => {
+    console.log(`_startDate:`, _startDate);
+    setStartDate(_startDate);
+  };
 
   const handleCreateOffer = async () => {};
 
@@ -125,16 +139,9 @@ const Sell = () => {
           />
           <div className="text-sm text-gray-500">{userFee / 100}%</div>
         </div>
-
         {/* Dates */}
         <div>
-          <label className="block text-sm font-medium">Start Date</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="input input-bordered w-full"
-          />
+          <DateField selectedDate={startDate} onSelectDate={onChangeStartDate} />
         </div>
         <div>
           <label className="block text-sm font-medium">End Date</label>
