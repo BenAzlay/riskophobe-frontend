@@ -18,7 +18,12 @@ import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import { erc20Abi, zeroAddress } from "viem";
 import { getConfig } from "@/wagmi";
-import { useAccount, useConnect, useWriteContract } from "wagmi";
+import {
+  useAccount,
+  useConnect,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
 import {
   getTokenAllowance,
   getTokenBalance,
@@ -49,7 +54,13 @@ const Sell = () => {
     data: approveHash,
     isPending: approveIsPending,
     writeContract: writeApprove,
+    error: approveError,
   } = useWriteContract();
+  const { isLoading: approveIsConfirming, isSuccess: approveSuccess } =
+    useWaitForTransactionReceipt({
+      hash: approveHash,
+    });
+
   const { address: connectedAddress } = useAccount();
 
   const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
@@ -168,6 +179,24 @@ const Sell = () => {
     setEndDate(_endDate);
   };
 
+  // useEffect to handle approve transaction success
+  useEffect(() => {
+    const fetchAllowance = async () => {
+      try {
+        const _allowance = await getSoldTokenAllowance();
+        console.log(`NEW _allowance:`, _allowance);
+        setSoldTokenAllowance(_allowance);
+      } catch (error) {
+        console.error("Error fetching allowance", error);
+      }
+    };
+
+    if (approveSuccess) {
+      console.log("Transaction approved successfully!");
+      fetchAllowance();
+    }
+  }, [approveSuccess]);
+
   const handleApprove = async () => {
     try {
       const soldTokenAddress: string = soldToken?.address ?? zeroAddress;
@@ -229,10 +258,18 @@ const Sell = () => {
       return (
         <button
           type="button"
-          disabled={!!hasEnoughSoldTokenAllowance || new Decimal(soldTokenAmountWei).lte(0)}
+          disabled={
+            approveIsPending ||
+            approveIsConfirming ||
+            !!hasEnoughSoldTokenAllowance ||
+            new Decimal(soldTokenAmountWei).lte(0)
+          }
           onClick={handleApprove}
           className="btn btn-primary w-full"
         >
+          {approveIsPending || approveIsConfirming ? (
+            <span className="loading loading-spinner"></span>
+          ) : null}
           APPROVE {soldToken?.symbol}
         </button>
       );
