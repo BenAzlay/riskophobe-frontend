@@ -49,7 +49,7 @@ const Navbar: React.FC = () => {
         <div className="flex-1">
           <div className="flex items-center">
             {/* Logo */}
-            <div className="text-secondary font-nimbus text-2xl font-bold">
+            <div className="text-primary font-nimbus text-2xl font-bold">
               <span className="hidden md:inline">Riskophobe</span>
               <span className="md:hidden">R</span>
             </div>

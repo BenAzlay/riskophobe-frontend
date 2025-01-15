@@ -158,3 +158,40 @@ export const abbreviateAmount = (
   return `${isNegative ? "-" : ""}${prefix}${value}${suffix}`;
 };
 
+/**
+ * Formats a date into a human-readable string with optional time display.
+ *
+ * @param date - The date object to format.
+ * @param showTime - Whether to include the time in the formatted string. Defaults to true.
+ * @returns A formatted date string.
+ */
+export const getFormattedDate = (date: Date, showTime: boolean = true): string => {
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  };
+
+  const dateString = date.toLocaleDateString(undefined, options);
+  const timeString = showTime
+    ? `, ${date.toLocaleTimeString(undefined, { hour12: false })}`
+    : "";
+
+  return `${dateString}${timeString}`;
+};
+
+/**
+ * Formats a date from a Unix timestamp (in seconds) into a human-readable string with optional time display.
+ *
+ * @param ts - The Unix timestamp in seconds.
+ * @param showTime - Whether to include the time in the formatted string. Defaults to false.
+ * @returns A formatted date string.
+ */
+export const getFormattedDateFromSecondsTimestamp = (
+  ts: number,
+  showTime: boolean = false
+): string => {
+  const date = new Date(ts * 1000);
+  return getFormattedDate(date, showTime);
+};
+
