@@ -3,6 +3,7 @@ import { getConfig } from "@/wagmi";
 import { ethers } from "ethers";
 import { erc20Abi } from "viem";
 import { readContract, readContracts } from "wagmi/actions";
+import { Token } from "./queries";
 
 /**
  * Fetches token details (symbol, decimals, and logo) for the provided token addresses.
@@ -123,4 +124,13 @@ export const getTokenAllowance = async (
     console.error("getTokenAllowance ERROR:", error);
     return "0";
   }
+};
+
+export const convertSubgraphToken = (token: Token): ERC20Token => {
+  const logo: string = `/tokenLogos/${token.symbol}.png`;
+  return {
+    ...token,
+    address: token.id,
+    logo
+  };
 };

@@ -1,6 +1,6 @@
 import { gql } from "graphql-request";
 
-interface Token {
+export interface Token {
   id: string;
   symbol: string;
   decimals: number;
@@ -15,8 +15,16 @@ export const getOffersQuery = gql`
       startTime
       endTime
       creatorFeeBp
-      collateralToken
-      soldToken
+      collateralToken {
+        id
+        symbol
+        decimals
+      }
+      soldToken {
+        id
+        symbol
+        decimals
+      }
       soldTokenAmount
       exchangeRate
       collateralBalance
@@ -40,4 +48,3 @@ export interface Offer {
 export interface GetOffersQueryResponse {
   offer: Offer[];
 }
-

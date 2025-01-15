@@ -1,4 +1,4 @@
-import { Offer } from "@/utils/queries";
+import Offer from "@/app/types/Offer";
 import { create } from "zustand";
 
 interface StoreState {
