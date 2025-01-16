@@ -13,7 +13,7 @@ const DateField: FC<DateFieldProps> = ({ selectedDate, onSelectDate, minDate = n
   const ExampleCustomInput = forwardRef<HTMLButtonElement, any>(
     ({ value, onClick }, ref) => (
       <button
-        className="btn btn-primary btn-outline w-full"
+        className="btn btn-primary btn-outline w-full animate-none"
         onClick={(event) => {
           event.preventDefault();
           onClick();
@@ -25,7 +25,7 @@ const DateField: FC<DateFieldProps> = ({ selectedDate, onSelectDate, minDate = n
     )
   );
   ExampleCustomInput.displayName = "ExampleCustomInput";
-
+  
   return (
     <DatePicker
       selected={selectedDate}

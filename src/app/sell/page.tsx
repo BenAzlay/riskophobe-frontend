@@ -237,6 +237,8 @@ const Sell = () => {
     if (createOfferSuccess) {
       console.log("createOffer successful!");
       fetchBalance();
+      setSoldTokenAmount("");
+      setCollateralAmount("");
     }
   }, [createOfferSuccess]);
 

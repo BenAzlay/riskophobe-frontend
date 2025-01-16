@@ -9,7 +9,7 @@ import {
 } from "@/utils/utilFunc";
 import { getConfig } from "@/wagmi";
 import Decimal from "decimal.js";
-import { FC, useEffect, useMemo } from "react";
+import { FC, Fragment, useEffect, useMemo } from "react";
 import {
   useAccount,
   useConnect,
@@ -144,55 +144,75 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
         </button>
       );
     }
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        <TransactionButton
+          onClickAction={handleRemoveOffer}
+          disabled={removeOfferIsPending || removeOfferIsConfirming}
+          loading={removeOfferIsPending || removeOfferIsConfirming}
+        >
+          BUY
+        </TransactionButton>
+        <TransactionButton
+          onClickAction={handleRemoveOffer}
+          disabled={removeOfferIsPending || removeOfferIsConfirming}
+          loading={removeOfferIsPending || removeOfferIsConfirming}
+        >
+          RETURN
+        </TransactionButton>
+      </div>
+    );
   };
 
   return (
-    <div className="flex flex-col gap-2 transition rounded-md p-4 border-2 border-primary hover:border-secondary">
-      <h6 className="text-primary text-lg font-bold text-center">
-        Buy {soldToken.symbol} for {collateralToken.symbol}
-      </h6>
-      <p className="flex items-center gap-2">
-        1{" "}
-        <span className="inline-flex items-center gap-1">
-          <img
-            src={soldToken.logo}
-            alt="logo"
-            height={18}
-            width={18}
-            className="rounded-full"
-          />
-          <span>{soldToken.symbol}</span>
-        </span>{" "}
-        = {abbreviateAmount(collateralPerSoldToken, "", 2)}{" "}
-        <span className="inline-flex items-center gap-1">
-          <img
-            src={collateralToken.logo}
-            alt="logo"
-            height={18}
-            width={18}
-            className="rounded-full"
-          />
-          <span>{collateralToken.symbol}</span>
-        </span>
-      </p>
-      <p className="flex items-center gap-2">
-        <span className="inline-flex items-center gap-1">
-          <img
-            src={soldToken.logo}
-            alt="logo"
-            height={18}
-            width={18}
-            className="rounded-full"
-          />
-          <span>{soldToken.symbol}</span>
-        </span>{" "}
-        sold: {abbreviateAmount(formattedSoldTokenAmount, "", 2)}
-      </p>
-      <p>Fee: {feePercent}%</p>
-      <p>Start: {startDate}</p>
-      <p>End: {endDate}</p>
-      {transactionButtons()}
-    </div>
+    <Fragment>
+      <div className="flex flex-col gap-2 transition rounded-md p-4 border-2 border-primary hover:border-secondary">
+        <h6 className="text-primary text-lg font-bold text-center">
+          Buy {soldToken.symbol} for {collateralToken.symbol}
+        </h6>
+        <p className="flex items-center gap-2">
+          1{" "}
+          <span className="inline-flex items-center gap-1">
+            <img
+              src={soldToken.logo}
+              alt="logo"
+              height={18}
+              width={18}
+              className="rounded-full"
+            />
+            <span>{soldToken.symbol}</span>
+          </span>{" "}
+          = {abbreviateAmount(collateralPerSoldToken, "", 2)}{" "}
+          <span className="inline-flex items-center gap-1">
+            <img
+              src={collateralToken.logo}
+              alt="logo"
+              height={18}
+              width={18}
+              className="rounded-full"
+            />
+            <span>{collateralToken.symbol}</span>
+          </span>
+        </p>
+        <p className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1">
+            <img
+              src={soldToken.logo}
+              alt="logo"
+              height={18}
+              width={18}
+              className="rounded-full"
+            />
+            <span>{soldToken.symbol}</span>
+          </span>{" "}
+          sold: {abbreviateAmount(formattedSoldTokenAmount, "", 2)}
+        </p>
+        <p>Fee: {feePercent}%</p>
+        <p>Start: {startDate}</p>
+        <p>End: {endDate}</p>
+        {transactionButtons()}
+      </div>
+    </Fragment>
   );
 };
 
