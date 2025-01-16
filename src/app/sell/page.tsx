@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import {
+  calculateCollateralPerOneSoldToken,
   calculateExchangeRate,
   convertQuantityFromWei,
   convertQuantityToWei,
-  getCurrentTimestampSeconds,
   getTimestampSecondsFromDate,
 } from "@/utils/utilFunc";
 import CONSTANTS from "@/utils/constants";
@@ -14,7 +14,7 @@ import TokensDropdown from "@/components/TokensDropdown";
 import TokenAmountField from "@/components/TokenAmountField";
 import Decimal from "decimal.js";
 import DateField from "@/components/DateField";
-import { getAccount, simulateContract } from "wagmi/actions";
+import { simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import { erc20Abi, zeroAddress } from "viem";
 import { getConfig } from "@/wagmi";
@@ -29,12 +29,10 @@ import {
   getTokenBalance,
   getTokenDetails,
 } from "@/utils/tokenMethods";
-import {
-  useAsyncEffect,
-  useVisibilityIntervalEffect,
-} from "@/utils/customHooks";
+import { useAsyncEffect, useCurrentTimestamp } from "@/utils/customHooks";
 import { ethers } from "ethers";
 import SignInButton from "@/components/SignInButton";
+import TransactionButton from "@/components/TransactionButton";
 
 const currentDate = new Date();
 const oneMonthFromNow: Date = new Date(
@@ -66,6 +64,8 @@ const Sell = () => {
     });
 
   const { address: connectedAddress } = useAccount();
+
+  const currentTs = useCurrentTimestamp();
 
   const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
   const [soldTokenAllowance, setSoldTokenAllowance] = useState<string>("0");
@@ -109,15 +109,15 @@ const Sell = () => {
     [soldTokenAmountWei, collateralAmountWei]
   );
 
-  const collateralPerSoldToken = useMemo(() => {
-    return new Decimal(formattedCollateralAmount)
-      .div(formattedSoldTokenAmount)
-      .toFixed(collateralToken?.decimals ?? 18);
-  }, [
-    formattedCollateralAmount,
-    formattedSoldTokenAmount,
-    collateralToken?.decimals,
-  ]);
+  const collateralPerSoldToken = useMemo(
+    () =>
+      calculateCollateralPerOneSoldToken(
+        Number(exchangeRate),
+        soldToken?.decimals ?? 18,
+        collateralToken?.decimals ?? 18
+      ),
+    [exchangeRate, soldToken?.decimals, collateralToken?.decimals]
+  );
 
   const hasEnoughSoldTokenAllowance = useMemo(() => {
     if (new Decimal(soldTokenAmountWei).lte(0))
@@ -248,7 +248,6 @@ const Sell = () => {
 
       let startDateTs: number = getTimestampSecondsFromDate(startDate);
       // Make sure start date is at least 5 minutes in the future to account for tx time
-      const currentTs = getCurrentTimestampSeconds();
       if (currentTs >= startDateTs - 300) startDateTs += 300;
       const endDateTs: number = getTimestampSecondsFromDate(endDate);
 
@@ -278,39 +277,31 @@ const Sell = () => {
     if (!connectedAddress) return <SignInButton />;
     if (!hasEnoughSoldTokenAllowance)
       return (
-        <button
-          type="button"
+        <TransactionButton
           disabled={
             approveIsPending ||
             approveIsConfirming ||
             !!hasEnoughSoldTokenAllowance ||
             new Decimal(soldTokenAmountWei).lte(0)
           }
-          onClick={handleApprove}
-          className="btn btn-primary w-full"
+          loading={approveIsPending || approveIsConfirming}
+          onClickAction={handleApprove}
         >
-          {approveIsPending || approveIsConfirming ? (
-            <span className="loading loading-spinner"></span>
-          ) : null}
           APPROVE {soldToken?.symbol}
-        </button>
+        </TransactionButton>
       );
     return (
-      <button
-        type="button"
+      <TransactionButton
         disabled={
           !hasEnoughSoldTokenAllowance ||
           createOfferIsConfirming ||
           createOfferIsPending
         }
-        onClick={handleCreateOffer}
-        className="btn btn-primary w-full"
+        onClickAction={handleCreateOffer}
+        loading={createOfferIsConfirming || createOfferIsPending}
       >
-        {createOfferIsConfirming || createOfferIsPending ? (
-          <span className="loading loading-spinner"></span>
-        ) : null}
         CREATE OFFER
-      </button>
+      </TransactionButton>
     );
   };
 

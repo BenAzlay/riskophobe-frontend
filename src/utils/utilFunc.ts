@@ -50,7 +50,8 @@ export const convertQuantityToWei = (
   decimals: number = 18
 ): string => {
   try {
-    if (!quantity || (typeof quantity === "string" && quantity.trim() === "")) return "0";
+    if (!quantity || (typeof quantity === "string" && quantity.trim() === ""))
+      return "0";
 
     const usedQuantity = new Decimal(quantity).toFixed(decimals);
     if (new Decimal(usedQuantity).lte(0)) return "0";
@@ -92,12 +93,47 @@ export const convertQuantityFromWei = (
  */
 export const calculateExchangeRate = (
   soldTokenAmount: number | string,
-  collateralTokenAmount: number | string,
+  collateralTokenAmount: number | string
 ): string => {
   try {
-    const exchangeRate = new Decimal(soldTokenAmount).mul(10**18).div(collateralTokenAmount);
-    return exchangeRate.toFixed(0);  
-  } catch(e) {
+    const exchangeRate = new Decimal(soldTokenAmount)
+      .mul(10 ** 18)
+      .div(collateralTokenAmount);
+    return exchangeRate.toFixed(0);
+  } catch (e) {
+    return "0";
+  }
+};
+
+/**
+ * Calculates the amount of collateral required for one unit of the sold token, considering token decimals.
+ *
+ * @param exchangeRate - The exchange rate as a string.
+ * @param soldTokenDecimals - The decimals for the sold token.
+ * @param collateralTokenDecimals - The decimals for the collateral token.
+ * @returns The calculated collateral per one sold token as a string.
+ */
+export const calculateCollateralPerOneSoldToken = (
+  exchangeRate: number,
+  soldTokenDecimals: number,
+  collateralTokenDecimals: number
+): string => {
+  try {
+    // Ensure the exchange rate is valid and greater than zero
+    const exchangeRateDecimal = new Decimal(exchangeRate);
+    if (exchangeRateDecimal.lte(0)) {
+      throw new Error("Exchange rate must be greater than zero.");
+    }
+
+    const result = new Decimal(10)
+      .pow(soldTokenDecimals)
+      .mul(new Decimal(10).pow(18))
+      .div(exchangeRateDecimal)
+      .div(new Decimal(10).pow(collateralTokenDecimals));
+
+    return result.toString();
+  } catch (error) {
+    console.error("calculateCollateralPerOneSoldToken ERROR:", error);
     return "0";
   }
 };
@@ -116,7 +152,7 @@ export const abbreviateAmount = (
   decimals: number = 0
 ): string => {
   const bnAmount = new Decimal(amount ?? 0);
-  
+
   if (bnAmount.eq(0)) return `${prefix}0`; // Equal to 0
 
   const smallerThanLimit = new Decimal(1).div(10 ** decimals).toString();
@@ -165,7 +201,10 @@ export const abbreviateAmount = (
  * @param showTime - Whether to include the time in the formatted string. Defaults to true.
  * @returns A formatted date string.
  */
-export const getFormattedDate = (date: Date, showTime: boolean = true): string => {
+export const getFormattedDate = (
+  date: Date,
+  showTime: boolean = true
+): string => {
   const options: Intl.DateTimeFormatOptions = {
     year: "numeric",
     month: "numeric",
@@ -195,3 +234,35 @@ export const getFormattedDateFromSecondsTimestamp = (
   return getFormattedDate(date, showTime);
 };
 
+/**
+ * Compares two Ethereum addresses for equality after validating and normalizing them.
+ *
+ * @param address1 - The first Ethereum address to compare.
+ * @param address2 - The second Ethereum address to compare.
+ * @returns A boolean indicating whether the two addresses are equivalent.
+ */
+export const compareEthereumAddresses = (
+  address1: string,
+  address2: string
+): boolean => {
+  try {
+    // Validate and normalize the addresses
+    const normalizedAddress1 = ethers.isAddress(address1)
+      ? ethers.getAddress(address1)
+      : null;
+    const normalizedAddress2 = ethers.isAddress(address2)
+      ? ethers.getAddress(address2)
+      : null;
+
+    // Return false if either address is invalid
+    if (!normalizedAddress1 || !normalizedAddress2) {
+      return false;
+    }
+
+    // Compare the normalized addresses
+    return normalizedAddress1 === normalizedAddress2;
+  } catch (error) {
+    console.error("compareEthereumAddresses ERROR:", error);
+    return false;
+  }
+};
