@@ -21,7 +21,6 @@ function App() {
         throw new Error("Failed to fetch deposits for user");
       }
       const { deposits } = await response.json();
-      console.log(`deposits:`, deposits)
       return deposits;
     } catch (e) {
       return [];

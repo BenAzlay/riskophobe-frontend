@@ -27,6 +27,7 @@ import { getConfig } from "@/wagmi";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import { erc20Abi, zeroAddress } from "viem";
+import useStore from "@/store/useStore";
 
 interface BuyModalProps {
   visible: boolean;
@@ -49,8 +50,9 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
 
   const config = getConfig();
   const { address: connectedAddress } = useAccount();
+  const { offers, setOffers } = useStore();
 
-  const [collateralIn, setCollateralIn] = useState<string>("");
+  const [collateralIn, setCollateralIn] = useState<string>("0");
   const [collateralBalance, setCollateralBalance] = useState<string>("0");
   const [collateralAllowance, setCollateralAllowance] = useState<string>("0");
 
@@ -80,6 +82,15 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
       return formattedCollateralBalance;
     return maxCollateralIn;
   }, [maxCollateralIn, formattedCollateralBalance]);
+
+  // Calculate step from one 1000th of the max
+  const step: number = useMemo(
+    () =>
+      parseFloat(
+        (Number(userMaxCollateralIn) / 100).toFixed(collateralToken.decimals)
+      ),
+    [userMaxCollateralIn]
+  );
 
   const collateralInWei = useMemo(
     () => convertQuantityToWei(collateralIn, collateralToken.decimals),
@@ -157,7 +168,6 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
     const fetchAllowance = async () => {
       try {
         const _allowance = await getCollateralAllowance();
-        console.log(`NEW _allowance:`, _allowance);
         setCollateralAllowance(_allowance);
       } catch (error) {
         console.error("Error fetching allowance", error);
@@ -202,13 +212,29 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
 
   // useEffect to handle buyTokens transaction success
   useEffect(() => {
-    const updateBalanceAndAllowance = async () => {
+    const handleSuccess = async () => {
+      // Update offer collateralBalance and soldTokenAmount
+      const newOffers = offers.map((offer) => {
+        if (offer.id === offerId) {
+          const newCollateralBalance = offer.collateralBalance + Number(collateralInWei);
+          const newSoldTokenAmount = offer.soldTokenAmount - Number(soldTokenOutWei);
+          return {
+            ...offer,
+            collateralBalance: newCollateralBalance,
+            soldTokenAmount: newSoldTokenAmount,
+          };
+        };
+        return offer;
+      });
+      setOffers(newOffers);
+      setCollateralIn("0");
+      // Update balance and allowance
       const payload = await collateralBalanceAndAllowanceGetter();
       collateralBalanceAndAllowanceSetter(payload);
     };
     if (buyTokensSuccess) {
       // Update collateral balance and allowance
-      updateBalanceAndAllowance();
+      handleSuccess();
     }
   }, [buyTokensSuccess]);
 
@@ -218,11 +244,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
         abi: RiskophobeProtocolAbi,
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
         functionName: "buyTokens",
-        args: [
-          BigInt(offerId),
-          BigInt(collateralInWei),
-          BigInt(0),
-        ],
+        args: [BigInt(offerId), BigInt(collateralInWei), BigInt(0)],
         connector: connectors[0],
       });
       console.log(`handleBuyTokens request:`, request);
@@ -278,8 +300,8 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
           image={collateralToken.logo}
           min={0}
           max={Number(userMaxCollateralIn)}
-          step={0.001}
-          displayTooltip={(value) => `${value} USDC`}
+          step={step}
+          displayTooltip={(value) => `${value} ${collateralToken.symbol}`}
         />
         <svg
           xmlns="http://www.w3.org/2000/svg"

@@ -135,7 +135,6 @@ const Sell = () => {
       const { WETH, WBTC, USDC } = CONSTANTS.TOKEN_ADDRESSES;
 
       const tokenDetails = await getTokenDetails([WETH, USDC, WBTC]);
-      console.log(`tokenDetails:`, tokenDetails);
       setTokensList(tokenDetails);
       setSoldToken(tokenDetails[0]);
       setCollateralToken(tokenDetails[1]);
@@ -188,7 +187,6 @@ const Sell = () => {
     const fetchAllowance = async () => {
       try {
         const _allowance = await getSoldTokenAllowance();
-        console.log(`NEW _allowance:`, _allowance);
         setSoldTokenAllowance(_allowance);
       } catch (error) {
         console.error("Error fetching allowance", error);

@@ -22,6 +22,9 @@ import { simulateContract } from "wagmi/actions";
 import useStore from "@/store/useStore";
 import TransactionButton from "./TransactionButton";
 import BuyModal from "./BuyModal";
+import { Deposit } from "@/utils/queries";
+import { ethers } from "ethers";
+import ReturnModal from "./ReturnModal";
 
 interface OfferItemProps {
   offer: Offer;
@@ -29,9 +32,10 @@ interface OfferItemProps {
 
 const OfferItem: FC<OfferItemProps> = ({ offer }) => {
   const config = getConfig();
-  const { offers, setOffers } = useStore();
+  const { offers, setOffers, deposits } = useStore();
 
   const [buyModalOpen, setBuyModalOpen] = useState(false);
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
 
   const { connectors } = useConnect();
   const {
@@ -100,12 +104,18 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
     [connectedAddress, creator]
   );
 
+  // The deposit connected user made to this offer
+  // null if no deposit was made to this offer by the user
+  const ownDeposit: Deposit | null = useMemo(
+    () => deposits.find((deposit) => deposit.offerId === offerId) ?? null,
+    [offerId, deposits]
+  );
+
   // useEffect to handle removeOffer transaction success
   useEffect(() => {
     if (removeOfferSuccess) {
       // Remove the removed offer from offers
       const newOffers = offers.filter((offer) => offer.id !== offerId);
-      console.log(`newOffers:`, newOffers);
       setOffers(newOffers);
     }
   }, [removeOfferSuccess]);
@@ -157,8 +167,12 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
           BUY
         </TransactionButton>
         <TransactionButton
-          onClickAction={handleRemoveOffer}
-          disabled={removeOfferIsPending || removeOfferIsConfirming}
+          onClickAction={() => setReturnModalOpen(true)}
+          disabled={
+            ownDeposit === null ||
+            removeOfferIsPending ||
+            removeOfferIsConfirming
+          }
           loading={removeOfferIsPending || removeOfferIsConfirming}
         >
           RETURN
@@ -220,6 +234,14 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
         onClose={() => setBuyModalOpen(false)}
         offer={offer}
       />
+      {ownDeposit !== null ? (
+        <ReturnModal
+          visible={returnModalOpen}
+          onClose={() => setReturnModalOpen(false)}
+          offer={offer}
+          deposit={ownDeposit}
+        />
+      ) : null}
     </Fragment>
   );
 };

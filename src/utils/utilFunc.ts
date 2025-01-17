@@ -160,7 +160,7 @@ export const calculateSoldTokenForCollateral = (
     const result = exchangeRateDecimal
       .mul(collateralAmount)
       .div(new Decimal(10).pow(18));
-    return result.toString();
+    return result.toFixed(0);
   } catch (error) {
     console.error("calculateSoldTokenForCollateral ERROR:", error);
     return "0";
@@ -193,7 +193,7 @@ export const calculateCollateralForSoldToken = (
       .div(exchangeRateDecimal)
       .mul(new Decimal(10).pow(18));
 
-    return result.toString();
+    return result.toFixed(0);
   } catch (error) {
     console.error("calculateCollateralForSoldToken ERROR:", error);
     return "0";

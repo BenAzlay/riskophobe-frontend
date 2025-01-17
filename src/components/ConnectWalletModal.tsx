@@ -11,7 +11,6 @@ const ConnectWalletModal: FC = () => {
   const { walletDialogOpen, setWalletDialogOpen } = useStore();
 
   const handleConnect = async (connector: Connector) => {
-    console.log("connector:", connector);
     connect(
       { connector },
       {
