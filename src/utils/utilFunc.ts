@@ -139,6 +139,68 @@ export const calculateCollateralPerOneSoldToken = (
 };
 
 /**
+ * Calculates the amount of sold tokens needed for a given collateral amount based on the exchange rate
+ *
+ * @param exchangeRate - The exchange rate as a number.
+ * @param collateralAmount - The collateral amount as a number or string in wei.
+ * @returns The calculated amount of sold tokens as a string in wei.
+ */
+export const calculateSoldTokenForCollateral = (
+  exchangeRate: number,
+  collateralAmount: number | string
+): string => {
+  try {
+    // Validate exchange rate
+    const exchangeRateDecimal = new Decimal(exchangeRate);
+    if (exchangeRateDecimal.lte(0)) {
+      throw new Error("Exchange rate must be greater than zero.");
+    }
+
+    // Perform the calculation
+    const result = exchangeRateDecimal
+      .mul(collateralAmount)
+      .div(new Decimal(10).pow(18));
+    return result.toString();
+  } catch (error) {
+    console.error("calculateSoldTokenForCollateral ERROR:", error);
+    return "0";
+  }
+};
+
+/**
+ * Calculates the collateral amount required for a given sold token amount based on the exchange rate.
+ *
+ * @param exchangeRate - The exchange rate as a number.
+ * @param soldTokenAmount - The sold token amount as a number or string in wei.
+ * @returns The calculated collateral amount as a string in wei.
+ */
+export const calculateCollateralForSoldToken = (
+  exchangeRate: number,
+  soldTokenAmount: number | string
+): string => {
+  try {
+    // Validate exchange rate
+    const exchangeRateDecimal = new Decimal(exchangeRate);
+    if (exchangeRateDecimal.lte(0)) {
+      throw new Error("Exchange rate must be greater than zero.");
+    }
+
+    // Parse sold token amount
+    const soldTokenAmountDecimal = new Decimal(soldTokenAmount);
+
+    // Perform the calculation
+    const result = soldTokenAmountDecimal
+      .div(exchangeRateDecimal)
+      .mul(new Decimal(10).pow(18));
+
+    return result.toString();
+  } catch (error) {
+    console.error("calculateCollateralForSoldToken ERROR:", error);
+    return "0";
+  }
+};
+
+/**
  * Abbreviates a numeric amount with a prefix, suffix, and optional decimals.
  *
  * @param amount - The numeric amount to abbreviate.

@@ -7,6 +7,7 @@ interface TokenAmountFieldProps {
   tokenComponent: ReactNode;
   showTokenBalance: boolean;
   tokenBalance?: string;
+  balanceLabel?: string;
 }
 
 const TokenAmountField: FC<TokenAmountFieldProps> = ({
@@ -15,6 +16,7 @@ const TokenAmountField: FC<TokenAmountFieldProps> = ({
   onChangeAmount,
   showTokenBalance = true,
   tokenBalance = "0",
+  balanceLabel = "Balance",
 }) => {
   return (
     <div className="rounded-md border-2 border-neutral px-4 py-2">
@@ -30,7 +32,7 @@ const TokenAmountField: FC<TokenAmountFieldProps> = ({
       </div>
       {showTokenBalance ? (
         <div className="flex justify-end cursor-pointer" onClick={() => onChangeAmount(tokenBalance)}>
-          <p>Balance: {abbreviateAmount(tokenBalance, '', 3)}</p>
+          <p>{balanceLabel}: {abbreviateAmount(tokenBalance, '', 3)}</p>
         </div>
       ) : null}
     </div>

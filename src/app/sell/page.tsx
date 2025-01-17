@@ -224,11 +224,10 @@ const Sell = () => {
 
   // useEffect to handle createOffer transaction success
   useEffect(() => {
-    const fetchBalance = async () => {
+    const fetchBalanceAndAllowance = async () => {
       try {
-        const _balance = await getSoldTokenBalance();
-        console.log(`NEW _balance:`, _balance);
-        setSoldTokenBalance(_balance);
+        const payload = await soldTokenBalanceAndAllowanceGetter();
+        soldTokenBalanceAndAllowanceSetter(payload);
       } catch (error) {
         console.error("Error fetching balance", error);
       }
@@ -236,7 +235,7 @@ const Sell = () => {
 
     if (createOfferSuccess) {
       console.log("createOffer successful!");
-      fetchBalance();
+      fetchBalanceAndAllowance();
       setSoldTokenAmount("");
       setCollateralAmount("");
     }

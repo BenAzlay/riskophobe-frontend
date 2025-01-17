@@ -9,7 +9,7 @@ import {
 } from "@/utils/utilFunc";
 import { getConfig } from "@/wagmi";
 import Decimal from "decimal.js";
-import { FC, Fragment, useEffect, useMemo } from "react";
+import { FC, Fragment, useEffect, useMemo, useState } from "react";
 import {
   useAccount,
   useConnect,
@@ -21,6 +21,7 @@ import CONSTANTS from "@/utils/constants";
 import { simulateContract } from "wagmi/actions";
 import useStore from "@/store/useStore";
 import TransactionButton from "./TransactionButton";
+import BuyModal from "./BuyModal";
 
 interface OfferItemProps {
   offer: Offer;
@@ -29,6 +30,8 @@ interface OfferItemProps {
 const OfferItem: FC<OfferItemProps> = ({ offer }) => {
   const config = getConfig();
   const { offers, setOffers } = useStore();
+
+  const [buyModalOpen, setBuyModalOpen] = useState(false);
 
   const { connectors } = useConnect();
   const {
@@ -147,7 +150,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
     return (
       <div className="grid grid-cols-2 gap-2">
         <TransactionButton
-          onClickAction={handleRemoveOffer}
+          onClickAction={() => setBuyModalOpen(true)}
           disabled={removeOfferIsPending || removeOfferIsConfirming}
           loading={removeOfferIsPending || removeOfferIsConfirming}
         >
@@ -212,6 +215,11 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
         <p>End: {endDate}</p>
         {transactionButtons()}
       </div>
+      <BuyModal
+        visible={buyModalOpen}
+        onClose={() => setBuyModalOpen(false)}
+        offer={offer}
+      />
     </Fragment>
   );
 };
