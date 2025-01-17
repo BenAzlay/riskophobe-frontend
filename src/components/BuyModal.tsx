@@ -25,6 +25,8 @@ import TransactionButton from "./TransactionButton";
 import { simulateContract } from "wagmi/actions";
 import { getConfig } from "@/wagmi";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
+import SignInButton from "./SignInButton";
+import { erc20Abi, zeroAddress } from "viem";
 
 interface BuyModalProps {
   visible: boolean;
@@ -93,6 +95,12 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
     [soldTokenOutWei, soldToken.decimals]
   );
 
+  const hasEnoughCollateralAllowance = useMemo(() => {
+    if (new Decimal(collateralInWei).lte(0))
+      return new Decimal(collateralAllowance).gt(0);
+    return new Decimal(collateralAllowance).gte(collateralInWei);
+  }, [collateralInWei, collateralAllowance]);
+
   const getCollateralBalance = async () =>
     await getTokenBalance(collateralToken?.address, connectedAddress);
   const getCollateralAllowance = async () =>
@@ -132,7 +140,55 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
     setCollateralIn(new Decimal(newValue).toString());
   };
 
-  // TX hooks
+  // Approve TX hooks
+  const {
+    data: approveHash,
+    isPending: approveIsPending,
+    writeContract: writeApprove,
+    error: approveError,
+  } = useWriteContract();
+  const { isLoading: approveIsConfirming, isSuccess: approveSuccess } =
+    useWaitForTransactionReceipt({
+      hash: approveHash,
+    });
+
+  // useEffect to handle approve transaction success
+  useEffect(() => {
+    const fetchAllowance = async () => {
+      try {
+        const _allowance = await getCollateralAllowance();
+        console.log(`NEW _allowance:`, _allowance);
+        setCollateralAllowance(_allowance);
+      } catch (error) {
+        console.error("Error fetching allowance", error);
+      }
+    };
+
+    if (approveSuccess) {
+      console.log("Transaction approved successfully!");
+      fetchAllowance();
+    }
+  }, [approveSuccess]);
+
+  const handleApprove = async () => {
+    try {
+      const { request } = await simulateContract(config, {
+        abi: erc20Abi,
+        address: collateralToken.address as `0x${string}`,
+        functionName: "approve",
+        args: [
+          CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+          BigInt(collateralInWei),
+        ],
+        connector: connectors[0],
+      });
+      writeApprove(request);
+    } catch (e) {
+      console.error("handleApprove ERROR", e);
+    }
+  };
+
+  // buyTokens TX hooks
   const { connectors } = useConnect();
   const {
     data: buyTokensHash,
@@ -163,9 +219,9 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
         functionName: "buyTokens",
         args: [
-            BigInt(offerId),
-            BigInt(collateralInWei),
-            BigInt(soldTokenOutWei),
+          BigInt(offerId),
+          BigInt(collateralInWei),
+          BigInt(0),
         ],
         connector: connectors[0],
       });
@@ -174,6 +230,38 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
     } catch (e) {
       console.error("handleBuyTokens ERROR", e);
     }
+  };
+
+  const transactionButton = () => {
+    if (!connectedAddress) return <SignInButton />;
+    if (!hasEnoughCollateralAllowance)
+      return (
+        <TransactionButton
+          disabled={
+            approveIsPending ||
+            approveIsConfirming ||
+            !!hasEnoughCollateralAllowance ||
+            new Decimal(collateralInWei).lte(0)
+          }
+          loading={approveIsPending || approveIsConfirming}
+          onClickAction={handleApprove}
+        >
+          APPROVE {collateralToken?.symbol}
+        </TransactionButton>
+      );
+    return (
+      <TransactionButton
+        disabled={
+          new Decimal(collateralInWei).lte(0) ||
+          buyTokensIsConfirming ||
+          buyTokensIsPending
+        }
+        loading={buyTokensIsConfirming || buyTokensIsPending}
+        onClickAction={handleBuyTokens}
+      >
+        BUY {soldToken.symbol}
+      </TransactionButton>
+    );
   };
 
   return (
@@ -210,17 +298,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
         <p>
           {soldTokenOut} {soldToken.symbol}
         </p>
-        <TransactionButton
-          disabled={
-            new Decimal(collateralInWei).lte(0) ||
-            buyTokensIsConfirming ||
-            buyTokensIsPending
-          }
-          loading={buyTokensIsConfirming || buyTokensIsPending}
-          onClickAction={() => {}}
-        >
-          BUY {soldToken.symbol}
-        </TransactionButton>
+        {transactionButton()}
       </div>
     </Modal>
   );
