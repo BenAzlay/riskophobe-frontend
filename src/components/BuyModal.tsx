@@ -10,6 +10,7 @@ import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
 import CONSTANTS from "@/utils/constants";
 import { useAsyncEffect } from "@/utils/customHooks";
 import Decimal from "decimal.js";
+import RangeSlider from "./RangeSlider";
 
 interface BuyModalProps {
   visible: boolean;
@@ -119,6 +120,9 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
               />
             }
           />
+        </div>
+        <div>
+            <RangeSlider image={collateralToken.logo} min={0} max={Number(userMaxCollateralIn)} step={0.001} />
         </div>
         <svg
           xmlns="http://www.w3.org/2000/svg"

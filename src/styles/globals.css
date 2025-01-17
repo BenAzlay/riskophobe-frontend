@@ -29,3 +29,26 @@ html {
 .navlink-active {
   @apply text-white font-bold;
 }
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border: none;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border: none;
+}
+
+input[type='range']::-ms-thumb {
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border: none;
+}
