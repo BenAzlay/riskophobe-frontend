@@ -1,4 +1,4 @@
-import { getOffersQuery, GetOffersQueryResponse } from "@/utils/queries";
+import { getOffersQuery, Offer } from "@/utils/queries";
 import CONSTANTS from "@/utils/constants";
 import { GraphQLClient } from "graphql-request";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -16,7 +16,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const data: GetOffersQueryResponse = await client.request(getOffersQuery);
+  const data: Offer[] = await client.request(getOffersQuery);
   try {
     res.status(200).json(data);
   } catch (error) {

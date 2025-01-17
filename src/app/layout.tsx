@@ -9,7 +9,7 @@ import Navbar from "@/components/Navbar";
 import Head from "next/head";
 import ConnectWalletModal from "@/components/ConnectWalletModal";
 import useStore from "@/store/useStore";
-import { useVisibilityIntervalEffect } from "@/utils/customHooks";
+import { useAsyncEffect, useVisibilityIntervalEffect } from "@/utils/customHooks";
 import { convertSubgraphToken } from "@/utils/tokenMethods";
 import { Offer } from "@/utils/queries";
 

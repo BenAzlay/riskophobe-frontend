@@ -45,6 +45,27 @@ export interface Offer {
   collateralBalance: number;
 }
 
-export interface GetOffersQueryResponse {
-  offer: Offer[];
+// GET OFFERS
+export const getDepositsQuery = gql`
+  query GetDeposits($participant: String!) {
+    deposits(
+      first: 1000
+      orderDirection: asc
+      where: { participant: $participant }
+    ) {
+      id
+      netCollateralAmount
+      participant
+      offerId
+      soldTokenAmount
+    }
+  }
+`;
+
+export interface Deposit {
+  id: string;
+  netCollateralAmount: number;
+  participant: string;
+  offerId: string;
+  soldTokenAmount: number;
 }
