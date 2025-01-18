@@ -10,15 +10,14 @@ import {
 import { getConfig } from "@/wagmi";
 import Decimal from "decimal.js";
 import { FC, Fragment, useMemo, useState } from "react";
-import {
-  useAccount
-} from "wagmi";
+import { useAccount } from "wagmi";
 import useStore from "@/store/useStore";
 import TransactionButton from "./TransactionButton";
 import BuyModal from "./BuyModal";
 import { Deposit } from "@/utils/queries";
 import ReturnModal from "./ReturnModal";
 import RemoveModal from "./RemoveModal";
+import Tooltip from "./Tooltip";
 
 interface OfferItemProps {
   offer: Offer;
@@ -92,15 +91,13 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
 
   // The deposit connected user made to this offer
   // null if no deposit was made to this offer by the user
-  const ownDeposit: Deposit | null = useMemo(
-    () => {
-      const _deposit = deposits.find((deposit) => deposit.offerId === offerId) ?? null;
-      // If no collateral left in deposit, do as if there is no deposit
-      if (_deposit === null || _deposit.netCollateralAmount <= 0) return null;
-      return _deposit;
-    },
-    [offerId, deposits]
-  );
+  const ownDeposit: Deposit | null = useMemo(() => {
+    const _deposit =
+      deposits.find((deposit) => deposit.offerId === offerId) ?? null;
+    // If no collateral left in deposit, do as if there is no deposit
+    if (_deposit === null || _deposit.netCollateralAmount <= 0) return null;
+    return _deposit;
+  }, [offerId, deposits]);
 
   const transactionButtons = () => {
     return (
@@ -188,7 +185,10 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
             />
             <span>{soldToken.symbol}</span>
           </span>{" "}
-          sold: {abbreviateAmount(formattedSoldTokenAmount, "", 2)}
+          sold:
+          <Tooltip message={`${formattedSoldTokenAmount} ${soldToken.symbol}`}>
+            {abbreviateAmount(formattedSoldTokenAmount, "", 2)}
+          </Tooltip>
         </p>
         <p>Fee: {feePercent}%</p>
         <p>Start: {startDate}</p>
