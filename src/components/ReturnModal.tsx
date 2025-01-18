@@ -27,6 +27,8 @@ import SignInButton from "./SignInButton";
 import { erc20Abi } from "viem";
 import { Deposit } from "@/utils/queries";
 import useStore from "@/store/useStore";
+import SwitchChainButton from "./SwitchChainButton";
+import { base } from "viem/chains";
 
 interface ReturnModalProps {
   visible: boolean;
@@ -59,7 +61,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
   } = deposit;
 
   const config = getConfig();
-  const { address: connectedAddress } = useAccount();
+  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
   const { offers, setOffers } = useStore();
 
   const [soldTokenIn, setSoldTokenIn] = useState<string>("0");
@@ -261,6 +263,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
 
   const transactionButton = () => {
     if (!connectedAddress) return <SignInButton />;
+    if (connectedChainId !== base.id) return <SwitchChainButton />;
     if (!hasEnoughSoldTokenAllowance)
       return (
         <TransactionButton

@@ -5,7 +5,9 @@ import { injected } from "wagmi/connectors";
 export function getConfig() {
   return createConfig({
     chains: [base],
-    connectors: [injected()],
+    connectors: [
+      injected(),
+    ],
     storage: createStorage({
       storage: cookieStorage,
     }),

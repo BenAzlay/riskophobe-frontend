@@ -1,3 +1,5 @@
+"use client";
+
 import { FC, useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
@@ -13,6 +15,7 @@ import { ethers } from "ethers";
 import {
   useAccount,
   useConnect,
+  useSwitchChain,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
@@ -28,6 +31,8 @@ import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import { erc20Abi, zeroAddress } from "viem";
 import useStore from "@/store/useStore";
+import { base } from "viem/chains";
+import SwitchChainButton from "./SwitchChainButton";
 
 interface BuyModalProps {
   visible: boolean;
@@ -49,8 +54,9 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
   } = offer;
 
   const config = getConfig();
-  const { address: connectedAddress } = useAccount();
+  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
   const { offers, setOffers } = useStore();
+  const { switchChain } = useSwitchChain();
 
   const [collateralIn, setCollateralIn] = useState<string>("0");
   const [collateralBalance, setCollateralBalance] = useState<string>("0");
@@ -216,14 +222,16 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
       // Update offer collateralBalance and soldTokenAmount
       const newOffers = offers.map((offer) => {
         if (offer.id === offerId) {
-          const newCollateralBalance = offer.collateralBalance + Number(collateralInWei);
-          const newSoldTokenAmount = offer.soldTokenAmount - Number(soldTokenOutWei);
+          const newCollateralBalance =
+            offer.collateralBalance + Number(collateralInWei);
+          const newSoldTokenAmount =
+            offer.soldTokenAmount - Number(soldTokenOutWei);
           return {
             ...offer,
             collateralBalance: newCollateralBalance,
             soldTokenAmount: newSoldTokenAmount,
           };
-        };
+        }
         return offer;
       });
       setOffers(newOffers);
@@ -240,6 +248,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
 
   const handleBuyTokens = async () => {
     try {
+      await switchChain({ chainId: base.id });
       const { request } = await simulateContract(config, {
         abi: RiskophobeProtocolAbi,
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
@@ -256,6 +265,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
 
   const transactionButton = () => {
     if (!connectedAddress) return <SignInButton />;
+    if (connectedChainId !== base.id) return <SwitchChainButton />;
     if (!hasEnoughCollateralAllowance)
       return (
         <TransactionButton

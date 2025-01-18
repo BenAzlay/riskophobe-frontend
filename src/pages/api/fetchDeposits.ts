@@ -5,7 +5,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 const client = new GraphQLClient(CONSTANTS.RISKOPHOBE_SUBGRAPH_ENDPOINT, {
   headers: {
-    Authorization: `Bearer ${process.env.GRAPHQL_API_KEY}`,
+    Authorization: `Bearer ${process.env.REACT_APP_GRAPHQL_API_KEY}`,
   },
 });
 

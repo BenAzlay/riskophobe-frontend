@@ -33,6 +33,8 @@ import { useAsyncEffect, useCurrentTimestamp } from "@/utils/customHooks";
 import { ethers } from "ethers";
 import SignInButton from "@/components/SignInButton";
 import TransactionButton from "@/components/TransactionButton";
+import { base } from "viem/chains";
+import SwitchChainButton from "@/components/SwitchChainButton";
 
 const currentDate = new Date();
 const oneMonthFromNow: Date = new Date(
@@ -63,7 +65,7 @@ const Sell = () => {
       hash: approveHash,
     });
 
-  const { address: connectedAddress } = useAccount();
+  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
   const currentTs = useCurrentTimestamp();
 
@@ -274,6 +276,7 @@ const Sell = () => {
 
   const transactionButton = () => {
     if (!connectedAddress) return <SignInButton />;
+    if (connectedChainId !== base.id) return <SwitchChainButton />;
     if (!hasEnoughSoldTokenAllowance)
       return (
         <TransactionButton
