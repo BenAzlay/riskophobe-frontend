@@ -30,6 +30,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
   const [buyModalOpen, setBuyModalOpen] = useState(false);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   const { address: connectedAddress } = useAccount();
   const currentTs = useCurrentTimestamp();
@@ -124,7 +125,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
         {userIsCreator ? (
           <Fragment>
             <TransactionButton
-              onClickAction={() => setBuyModalOpen(true)}
+              onClickAction={() => setAddModalOpen(true)}
               disabled={!userIsCreator || offerIsEnded}
             >
               <img src={soldToken.logo} width={14} height={14} alt="logo" /> ADD{" "}
@@ -212,6 +213,13 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
         <RemoveModal
           visible={removeModalOpen}
           onClose={() => setRemoveModalOpen(false)}
+          offer={offer}
+        />
+      ) : null}
+      {userIsCreator ? (
+        <RemoveModal
+          visible={addModalOpen}
+          onClose={() => setAddModalOpen(false)}
           offer={offer}
         />
       ) : null}
