@@ -2,16 +2,16 @@ import { FC } from "react";
 
 interface TransactionButtonProps {
   onClickAction: () => void;
-  disabled: boolean;
-  loading: boolean;
+  disabled?: boolean;
+  loading?: boolean;
   children: React.ReactNode; // Content passed as children
 }
 
 const TransactionButton: FC<TransactionButtonProps> = ({
   onClickAction,
-  disabled,
-  loading,
-  children
+  children,
+  disabled = false,
+  loading = false,
 }) => {
   return (
     <button

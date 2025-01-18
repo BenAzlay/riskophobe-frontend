@@ -56,7 +56,6 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
   const config = getConfig();
   const { address: connectedAddress, chainId: connectedChainId } = useAccount();
   const { offers, setOffers } = useStore();
-  const { switchChain } = useSwitchChain();
 
   const [collateralIn, setCollateralIn] = useState<string>("0");
   const [collateralBalance, setCollateralBalance] = useState<string>("0");
@@ -248,7 +247,6 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
 
   const handleBuyTokens = async () => {
     try {
-      await switchChain({ chainId: base.id });
       const { request } = await simulateContract(config, {
         abi: RiskophobeProtocolAbi,
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,

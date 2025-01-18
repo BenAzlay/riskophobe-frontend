@@ -57,7 +57,6 @@ export const getDepositsQuery = gql`
       netCollateralAmount
       participant
       offerId
-      soldTokenAmount
     }
   }
 `;
@@ -67,5 +66,4 @@ export interface Deposit {
   netCollateralAmount: number;
   participant: string;
   offerId: string;
-  soldTokenAmount: number;
 }

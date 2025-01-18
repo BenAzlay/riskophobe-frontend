@@ -53,11 +53,11 @@ const ReturnModal: FC<ReturnModalProps> = ({
     endTime,
     soldTokenAmount,
     creator,
+    collateralBalance,
   } = offer;
 
   const {
     netCollateralAmount: collateralDepositedWei,
-    soldTokenAmount: soldTokenBoughtWei,
   } = deposit;
 
   const config = getConfig();
@@ -71,6 +71,11 @@ const ReturnModal: FC<ReturnModalProps> = ({
   const formattedSoldTokenBalance = useMemo(
     () => convertQuantityFromWei(soldTokenBalance, soldToken.decimals),
     [soldTokenBalance, soldToken.decimals]
+  );
+  
+  const soldTokenBoughtWei = useMemo(
+    () => calculateSoldTokenForCollateral(exchangeRate, collateralDepositedWei),
+    [exchangeRate, collateralDepositedWei]
   );
 
   const soldTokenBought = useMemo(
@@ -142,6 +147,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
     string,
     string,
   ]): void => {
+    console.log(`newAllowance:`, newAllowance)
     setSoldTokenBalance(newBalance);
     setSoldTokenAllowance(newAllowance);
   };
@@ -192,7 +198,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
         functionName: "approve",
         args: [
           CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-          BigInt(collateralOutWei),
+          BigInt(soldTokenInWei),
         ],
         connector: connectors[0],
       });
@@ -223,9 +229,9 @@ const ReturnModal: FC<ReturnModalProps> = ({
       const newOffers = offers.map((offer) => {
         if (offer.id === offerId) {
           const newCollateralBalance =
-            offer.collateralBalance - Number(collateralOutWei);
+          offer.collateralBalance - Number(collateralOutWei);
           const newSoldTokenAmount =
-            offer.soldTokenAmount + Number(soldTokenInWei);
+          offer.soldTokenAmount + Number(soldTokenInWei);
           return {
             ...offer,
             collateralBalance: newCollateralBalance,
@@ -247,6 +253,9 @@ const ReturnModal: FC<ReturnModalProps> = ({
 
   const handleReturnTokens = async () => {
     try {
+      console.log(`handleReturnTokens collateralOutWei:`, collateralOutWei)
+      console.log(`handleReturnTokens collateralBalance:`, collateralBalance)
+
       const { request } = await simulateContract(config, {
         abi: RiskophobeProtocolAbi,
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,

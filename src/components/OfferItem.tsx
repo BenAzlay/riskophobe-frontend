@@ -9,22 +9,16 @@ import {
 } from "@/utils/utilFunc";
 import { getConfig } from "@/wagmi";
 import Decimal from "decimal.js";
-import { FC, Fragment, useEffect, useMemo, useState } from "react";
+import { FC, Fragment, useMemo, useState } from "react";
 import {
-  useAccount,
-  useConnect,
-  useWaitForTransactionReceipt,
-  useWriteContract,
+  useAccount
 } from "wagmi";
-import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
-import CONSTANTS from "@/utils/constants";
-import { simulateContract } from "wagmi/actions";
 import useStore from "@/store/useStore";
 import TransactionButton from "./TransactionButton";
 import BuyModal from "./BuyModal";
 import { Deposit } from "@/utils/queries";
-import { ethers } from "ethers";
 import ReturnModal from "./ReturnModal";
+import RemoveModal from "./RemoveModal";
 
 interface OfferItemProps {
   offer: Offer;
@@ -36,17 +30,8 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
 
   const [buyModalOpen, setBuyModalOpen] = useState(false);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [removeModalOpen, setRemoveModalOpen] = useState(false);
 
-  const { connectors } = useConnect();
-  const {
-    data: removeOfferHash,
-    isPending: removeOfferIsPending,
-    writeContract: writeRemoveOffer,
-  } = useWriteContract();
-  const { isLoading: removeOfferIsConfirming, isSuccess: removeOfferSuccess } =
-    useWaitForTransactionReceipt({
-      hash: removeOfferHash,
-    });
   const { address: connectedAddress } = useAccount();
   const currentTs = useCurrentTimestamp();
 
@@ -60,6 +45,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
     endTime,
     soldTokenAmount,
     creator,
+    collateralBalance,
   } = offer;
 
   const collateralPerSoldToken = useMemo(
@@ -107,76 +93,56 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
   // The deposit connected user made to this offer
   // null if no deposit was made to this offer by the user
   const ownDeposit: Deposit | null = useMemo(
-    () => deposits.find((deposit) => deposit.offerId === offerId) ?? null,
+    () => {
+      const _deposit = deposits.find((deposit) => deposit.offerId === offerId) ?? null;
+      // If no collateral left in deposit, do as if there is no deposit
+      if (_deposit === null || _deposit.netCollateralAmount <= 0) return null;
+      return _deposit;
+    },
     [offerId, deposits]
   );
 
-  // useEffect to handle removeOffer transaction success
-  useEffect(() => {
-    if (removeOfferSuccess) {
-      // Remove the removed offer from offers
-      const newOffers = offers.filter((offer) => offer.id !== offerId);
-      setOffers(newOffers);
-    }
-  }, [removeOfferSuccess]);
-
-  const handleRemoveOffer = async () => {
-    try {
-      const { request } = await simulateContract(config, {
-        abi: RiskophobeProtocolAbi,
-        address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-        functionName: "removeOffer",
-        args: [BigInt(offerId)],
-        connector: connectors[0],
-      });
-      console.log(`handleRemoveOffer request:`, request);
-      writeRemoveOffer(request);
-    } catch (e) {
-      console.error("handleRemoveOffer ERROR", e);
-    }
-  };
-
-  const removeOfferButton = () => {
-    return (
-      <TransactionButton
-        onClickAction={handleRemoveOffer}
-        disabled={removeOfferIsPending || removeOfferIsConfirming}
-        loading={removeOfferIsPending || removeOfferIsConfirming}
-      >
-        REMOVE OFFER
-      </TransactionButton>
-    );
-  };
-
   const transactionButtons = () => {
-    if (offerNotStartedYet || offerIsEnded) {
-      if (userIsCreator) return removeOfferButton();
-      return (
-        <button className="btn btn-primary w-full" disabled={true}>
-          {offerNotStartedYet ? "NOT STARTED" : "EXPIRED"}
-        </button>
-      );
-    }
     return (
       <div className="grid grid-cols-2 gap-2">
-        <TransactionButton
-          onClickAction={() => setBuyModalOpen(true)}
-          disabled={removeOfferIsPending || removeOfferIsConfirming}
-          loading={removeOfferIsPending || removeOfferIsConfirming}
-        >
-          BUY
-        </TransactionButton>
-        <TransactionButton
-          onClickAction={() => setReturnModalOpen(true)}
-          disabled={
-            ownDeposit === null ||
-            removeOfferIsPending ||
-            removeOfferIsConfirming
-          }
-          loading={removeOfferIsPending || removeOfferIsConfirming}
-        >
-          RETURN
-        </TransactionButton>
+        {offerNotStartedYet || offerIsEnded ? (
+          <button className="btn btn-primary w-full col-span-2" disabled={true}>
+            {offerNotStartedYet ? "NOT STARTED" : "EXPIRED"}
+          </button>
+        ) : (
+          <Fragment>
+            <TransactionButton onClickAction={() => setBuyModalOpen(true)}>
+              🤑 BUY
+            </TransactionButton>
+            <TransactionButton
+              onClickAction={() => setReturnModalOpen(true)}
+              disabled={
+                ownDeposit === null // enable only if user has deposited collateral into this offer
+              }
+            >
+              😭 RETURN
+            </TransactionButton>
+          </Fragment>
+        )}
+        {userIsCreator ? (
+          <Fragment>
+            <TransactionButton
+              onClickAction={() => setBuyModalOpen(true)}
+              disabled={!userIsCreator || offerIsEnded}
+            >
+              <img src={soldToken.logo} width={14} height={14} alt="logo" /> ADD{" "}
+              {soldToken.symbol}
+            </TransactionButton>
+            <TransactionButton
+              onClickAction={() => setRemoveModalOpen(true)}
+              disabled={
+                !userIsCreator || (collateralBalance > 0 && !offerIsEnded)
+              }
+            >
+              🫥 REMOVE
+            </TransactionButton>
+          </Fragment>
+        ) : null}
       </div>
     );
   };
@@ -240,6 +206,13 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
           onClose={() => setReturnModalOpen(false)}
           offer={offer}
           deposit={ownDeposit}
+        />
+      ) : null}
+      {userIsCreator ? (
+        <RemoveModal
+          visible={removeModalOpen}
+          onClose={() => setRemoveModalOpen(false)}
+          offer={offer}
         />
       ) : null}
     </Fragment>
