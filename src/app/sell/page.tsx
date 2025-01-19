@@ -77,9 +77,9 @@ const Sell = () => {
   const [collateralToken, setCollateralToken] = useState<ERC20Token | null>(
     null
   );
-  const [soldTokenAmount, setSoldTokenAmount] = useState("");
-  const [collateralAmount, setCollateralAmount] = useState("");
-  const [creatorFee, setCreatorFee] = useState(0); // fee in basis points
+  const [soldTokenAmount, setSoldTokenAmount] = useState<string>("");
+  const [collateralAmount, setCollateralAmount] = useState<string>("");
+  const [creatorFee, setCreatorFee] = useState<number>(0); // fee in basis points
   const [startDate, setStartDate] = useState<Date | null>(currentDate);
   const [endDate, setEndDate] = useState<Date | null>(oneMonthFromNow);
 

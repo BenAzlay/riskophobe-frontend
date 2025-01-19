@@ -19,7 +19,7 @@ const TokenAmountField: FC<TokenAmountFieldProps> = ({
   balanceLabel = "Balance",
 }) => {
   return (
-    <div className="rounded-md border-2 border-neutral px-4 py-2">
+    <div className="rounded-md border-2 border-neutral px-4 py-2 w-full">
       <div className="flex gap-8 items-center">
         <input
           value={amount}
