@@ -53,39 +53,37 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
     [collateralBalance, collateralToken.decimals]
   );
 
-  // removeOffer tx hooks
+  // addSoldTokens tx hooks
   const { connectors } = useConnect();
   const {
-    data: removeOfferHash,
-    isPending: removeOfferIsPending,
-    writeContract: writeRemoveOffer,
+    data: addSoldTokensHash,
+    isPending: addSoldTokensIsPending,
+    writeContract: writeAddSoldTokens,
   } = useWriteContract();
-  const { isLoading: removeOfferIsConfirming, isSuccess: removeOfferSuccess } =
+  const { isLoading: addSoldTokensIsConfirming, isSuccess: addSoldTokensSuccess } =
     useWaitForTransactionReceipt({
-      hash: removeOfferHash,
+      hash: addSoldTokensHash,
     });
 
-  // useEffect to handle removeOffer transaction success
+  // useEffect to handle addSoldTokens transaction success
   useEffect(() => {
-    if (removeOfferSuccess) {
-      // Remove the removed offer from offers
-      const newOffers = offers.filter((offer) => offer.id !== offerId);
-      setOffers(newOffers);
+    if (addSoldTokensSuccess) {
+      // TODO
     }
-  }, [removeOfferSuccess]);
+  }, [addSoldTokensSuccess]);
 
-  const handleRemoveOffer = async () => {
+  const handleAddSoldTokens = async () => {
     try {
       const { request } = await simulateContract(config, {
         abi: RiskophobeProtocolAbi,
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-        functionName: "removeOffer",
-        args: [BigInt(offerId)],
+        functionName: "addSoldTokens",
+        args: [BigInt(offerId), BigInt(soldTokenAmount)],
         connector: connectors[0],
       });
-      writeRemoveOffer(request);
+      writeAddSoldTokens(request);
     } catch (e) {
-      console.error("handleRemoveOffer ERROR", e);
+      console.error("handleAddSoldTokens ERROR", e);
     }
   };
 
@@ -94,31 +92,18 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
     if (connectedChainId !== base.id) return <SwitchChainButton />;
     return (
       <TransactionButton
-        onClickAction={handleRemoveOffer}
-        disabled={removeOfferIsPending || removeOfferIsConfirming}
-        loading={removeOfferIsPending || removeOfferIsConfirming}
+        onClickAction={handleAddSoldTokens}
+        disabled={addSoldTokensIsPending || addSoldTokensIsConfirming}
+        loading={addSoldTokensIsPending || addSoldTokensIsConfirming}
       >
-        REMOVE OFFER
+        ADD {soldToken.symbol}
       </TransactionButton>
     );
   };
 
   return (
-    <Modal visible={visible} title={`Remove this offer`} onClose={onClose}>
+    <Modal visible={visible} title={`Add ${soldToken.symbol} to this offer`} onClose={onClose}>
       <div className="flex flex-col gap-4 items-center">
-        <p className="flex items-center">
-          You will receive
-          <img src={soldToken.logo} width={14} height={14} className="mx-1" />
-          {formattedSoldTokenAmount} {soldToken.symbol} and
-          <img
-            src={collateralToken.logo}
-            width={14}
-            height={14}
-            className="mx-1"
-          />
-          {formattedCollateralBalance} {collateralToken.symbol}
-        </p>
-
         {transactionButton()}
       </div>
     </Modal>

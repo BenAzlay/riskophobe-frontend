@@ -16,8 +16,9 @@ import TransactionButton from "./TransactionButton";
 import BuyModal from "./BuyModal";
 import { Deposit } from "@/utils/queries";
 import ReturnModal from "./ReturnModal";
-import RemoveModal from "./RemoveModal";
 import Tooltip from "./Tooltip";
+import AddModal from "./AddModal";
+import RemoveModal from "./RemoveModal";
 
 interface OfferItemProps {
   offer: Offer;
@@ -217,7 +218,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
         />
       ) : null}
       {userIsCreator ? (
-        <RemoveModal
+        <AddModal
           visible={addModalOpen}
           onClose={() => setAddModalOpen(false)}
           offer={offer}
