@@ -134,7 +134,7 @@ export const abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "netCollateralAmount",
+        name: "collateralAmount",
         type: "uint256"
       }
     ],
@@ -155,6 +155,12 @@ export const abi = [
         internalType: "address",
         name: "participant",
         type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "soldTokenAmount",
+        type: "uint256"
       },
       {
         indexed: false,
