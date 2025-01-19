@@ -328,3 +328,38 @@ export const compareEthereumAddresses = (
     return false;
   }
 };
+
+/**
+ * Formats a number with commas as thousands separators and ensures two decimal places.
+ *
+ * @param x - The number to format, as a string, number, or Decimal-compatible value.
+ * @returns A string representing the formatted number with commas and two decimal places.
+ */
+export function numberWithCommas(x: string | number | Decimal): string {
+  try {
+    // Check if x is null, undefined, or an empty string
+    if (x == null || x === "") {
+      return "0.00";
+    }
+
+    // Convert to Decimal to handle numbers accurately
+    const num = new Decimal(x);
+
+    // Ensure non-zero value; otherwise return default "0.00"
+    if (num.isZero()) {
+      return "0.00";
+    }
+
+    // Split the number into integer and decimal parts
+    const [integerPart, decimalPart] = num.toFixed(2).split(".");
+
+    // Add commas to the integer part
+    const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+    // Return the formatted number
+    return `${formattedIntegerPart}.${decimalPart}`;
+  } catch (error) {
+    console.error("numberWithCommas ERROR:", error);
+    return "0.00";
+  }
+}

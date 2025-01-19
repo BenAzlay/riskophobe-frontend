@@ -2,13 +2,15 @@
 
 import useStore from "@/store/useStore";
 import { useAsyncEffect } from "@/utils/customHooks";
-import { CreatorFee } from "@/utils/queries";
+import { CreatorFee as SubgraphCreatorFee } from "@/utils/queries";
+import CreatorFee from "../types/CreatorFee";
 import { convertSubgraphToken } from "@/utils/tokenMethods";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
+import FeesTable from "@/components/FeesTable";
 
 const Claim = () => {
-  const { setCreatorFees } = useStore();
+  const { setCreatorFees, creatorFees } = useStore();
   const { address: connectedAddress } = useAccount();
 
   const creatorFeesGetter = async (): Promise<CreatorFee[]> => {
@@ -24,7 +26,7 @@ const Claim = () => {
       }
       const { creatorFees: subgraphCreatorFees } = await response.json();
       // Add token logos to convert them into ERC20Token type
-      const creatorFees = subgraphCreatorFees.map((fee: CreatorFee) => {
+      const creatorFees = subgraphCreatorFees.map((fee: SubgraphCreatorFee) => {
         const token = convertSubgraphToken(fee.token);
         return {
           ...fee,
@@ -45,6 +47,7 @@ const Claim = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Claim your rewards</h1>
+      <FeesTable creatorFees={creatorFees} />
     </div>
   );
 };

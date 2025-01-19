@@ -8,7 +8,7 @@ interface TokenSymbolAndLogoProps {
 const TokenSymbolAndLogo: FC<TokenSymbolAndLogoProps> = ({ symbol, logo }) => {
   return (
     <div className="flex gap-2 items-center">
-      <img src={logo} alt="logo" height={24} width={24} className="rounded-full" />
+      <img src={logo} alt={symbol} className="rounded-full w-6 h-6" />
       <p className="p-0 font-bold">{symbol ?? "TOKEN"}</p>
     </div>
   );

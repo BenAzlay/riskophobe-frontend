@@ -1,5 +1,6 @@
+import CreatorFee from "@/app/types/CreatorFee";
 import Offer from "@/app/types/Offer";
-import { CreatorFee, Deposit } from "@/utils/queries";
+import { Deposit } from "@/utils/queries";
 import { create } from "zustand";
 
 interface StoreState {
