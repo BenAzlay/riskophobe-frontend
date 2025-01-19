@@ -127,6 +127,12 @@ const Sell = () => {
     return new Decimal(soldTokenAllowance).gte(soldTokenAmountWei);
   }, [soldTokenAmountWei, soldTokenAllowance]);
 
+  const hasEnoughSoldTokenBalance = useMemo(() => {
+    if (new Decimal(soldTokenAmountWei).lte(0))
+      return new Decimal(soldTokenBalance).gt(0);
+    return new Decimal(soldTokenBalance).gte(soldTokenAmountWei);
+  }, [soldTokenAmountWei, soldTokenBalance]);
+
   const formattedSoldTokenBalance = useMemo(
     () => convertQuantityFromWei(soldTokenBalance, soldToken?.decimals ?? 18),
     [soldTokenBalance, soldToken?.decimals]
@@ -284,6 +290,7 @@ const Sell = () => {
             approveIsPending ||
             approveIsConfirming ||
             !!hasEnoughSoldTokenAllowance ||
+            !hasEnoughSoldTokenAllowance ||
             new Decimal(soldTokenAmountWei).lte(0)
           }
           loading={approveIsPending || approveIsConfirming}
@@ -295,7 +302,10 @@ const Sell = () => {
     return (
       <TransactionButton
         disabled={
+          new Decimal(soldTokenAmountWei).lte(0) ||
+          new Decimal(collateralAmountWei).lte(0) ||
           !hasEnoughSoldTokenAllowance ||
+          !hasEnoughSoldTokenBalance ||
           createOfferIsConfirming ||
           createOfferIsPending
         }
