@@ -45,7 +45,7 @@ export interface Offer {
   collateralBalance: number;
 }
 
-// GET OFFERS
+// GET DEPOSITS
 export const getDepositsQuery = gql`
   query GetDeposits($participant: String!) {
     deposits(
@@ -66,4 +66,31 @@ export interface Deposit {
   netCollateralAmount: number;
   participant: string;
   offerId: string;
+}
+
+// GET CREATOR FEES
+export const getCreatorFeesQuery = gql`
+  query GetCreatorFees($creator: String!) {
+    creatorFees(
+      first: 1000
+      orderDirection: asc
+      where: { creator: $creator }
+    ) {
+      amount
+      creator
+      id
+      token {
+        decimals
+        id
+        symbol
+      }
+    }
+  }
+`;
+
+export interface CreatorFee {
+  id: string;
+  amount: number;
+  creator: string;
+  token: Token;
 }

@@ -1,4 +1,4 @@
-import { Deposit, getDepositsQuery } from "@/utils/queries";
+import { CreatorFee, getCreatorFeesQuery } from "@/utils/queries";
 import CONSTANTS from "@/utils/constants";
 import { GraphQLClient } from "graphql-request";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -14,17 +14,17 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
-    const { participant } = req.query;
+    const { creator } = req.query;
 
-    if (!participant || typeof participant !== "string") {
+    if (!creator || typeof creator !== "string") {
       return res
         .status(400)
         .json({ error: "Missing or invalid participant address" });
     }
-    const data: Deposit[] = await client.request(getDepositsQuery, { participant });
+    const data: CreatorFee[] = await client.request(getCreatorFeesQuery, { creator });
     res.status(200).json(data);
   } catch (error) {
-    console.error("fetchDeposits ERROR =>", error);
+    console.error("fetchCreatorFees ERROR =>", error);
     res.status(500).json({ error: "Failed to fetch data" });
   }
 }

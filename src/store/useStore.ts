@@ -1,5 +1,5 @@
 import Offer from "@/app/types/Offer";
-import { Deposit } from "@/utils/queries";
+import { CreatorFee, Deposit } from "@/utils/queries";
 import { create } from "zustand";
 
 interface StoreState {
@@ -9,6 +9,8 @@ interface StoreState {
   setOffers: (arr: Offer[]) => void;
   deposits: Deposit[];
   setDeposits: (arr: Deposit[]) => void;
+  creatorFees: CreatorFee[];
+  setCreatorFees: (arr: CreatorFee[]) => void;
 }
 
 const useStore = create<StoreState>((set) => ({
@@ -18,6 +20,8 @@ const useStore = create<StoreState>((set) => ({
   setOffers: (array) => set((state) => ({ offers: array })),
   deposits: [],
   setDeposits: (array) => set((state) => ({ deposits: array })),
+  creatorFees: [],
+  setCreatorFees: (array) => set((state) => ({ creatorFees: array })),
 }));
 
 export default useStore;
