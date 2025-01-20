@@ -1,5 +1,6 @@
-import { abbreviateAmount } from "@/utils/utilFunc";
+import { abbreviateAmount, numberWithCommas } from "@/utils/utilFunc";
 import { FC, ReactNode } from "react";
+import Tooltip from "./Tooltip";
 
 interface TokenAmountFieldProps {
   amount: string;
@@ -9,6 +10,7 @@ interface TokenAmountFieldProps {
   tokenBalance?: string;
   balanceLabel?: string;
   placeholder?: string;
+  tokenPrice?: number; // Optional: Token price for $ value calculation
 }
 
 const TokenAmountField: FC<TokenAmountFieldProps> = ({
@@ -19,24 +21,48 @@ const TokenAmountField: FC<TokenAmountFieldProps> = ({
   tokenBalance = "0",
   balanceLabel = "Balance",
   placeholder = "Amount",
+  tokenPrice = 1, // Default token price, replace with actual value
 }) => {
+  const usdValue = parseFloat(amount || "0") * tokenPrice;
+
+  // Validate and handle input change
+  const handleInputChange = (value: string) => {
+    // Allow only numbers and a single decimal point
+    if (/^\d*\.?\d*$/.test(value)) {
+      onChangeAmount(value);
+    }
+  };
+
   return (
-    <div className="rounded-md border-2 border-neutral px-4 py-2 w-full">
+    <div className="rounded-md border border-[#333333] bg-[#1e1e1e] px-2 sm:px-4 py-3 w-full">
       <div className="flex gap-2 items-center">
         <input
           value={amount}
-          onChange={(event) => onChangeAmount(event.target.value)}
+          onChange={(event) => handleInputChange(event.target.value)}
           type="text"
           placeholder={placeholder}
-          className="input w-full p-0 border-none hover:border-none focus:outline-none"
+          className="bg-transparent w-full text-white text-lg placeholder-gray-500 focus:outline-none"
         />
         {tokenComponent}
       </div>
-      {showTokenBalance ? (
-        <div className="flex justify-end cursor-pointer" onClick={() => onChangeAmount(tokenBalance)}>
-          <p>{balanceLabel}: {abbreviateAmount(tokenBalance, '', 3)}</p>
+      <div className="flex justify-between items-center mt-2 text-sm text-gray-400 gap-2">
+        <div className="text-left text-ellipsis overflow-hidden">
+          <Tooltip message={`$${numberWithCommas(usdValue)}`}>
+            {abbreviateAmount(usdValue, '$', 2)}
+          </Tooltip>
+          <span></span>
         </div>
-      ) : null}
+        {showTokenBalance && (
+          <div
+            className="cursor-pointer text-right whitespace-nowrap hover:underline"
+            onClick={() => onChangeAmount(tokenBalance)}
+          >
+            <p>
+              {balanceLabel}: {abbreviateAmount(tokenBalance, "", 3)}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
