@@ -22,6 +22,10 @@ html {
   scrollbar-gutter: auto !important;
 }
 
+.page-container {
+  @apply p-6;
+}
+
 .navlink {
   @apply btn btn-ghost normal-case text-lg;
 }

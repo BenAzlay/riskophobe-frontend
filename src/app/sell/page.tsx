@@ -318,9 +318,9 @@ const Sell = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="page-container">
       <h1 className="text-2xl font-bold mb-4">Create an Offer</h1>
-      <form className="space-y-4">
+      <form className="space-y-4 max-w-md">
         <div>
           <label className="block text-sm font-medium">Sold Token Amount</label>
           <TokenAmountField
@@ -328,6 +328,7 @@ const Sell = () => {
             onChangeAmount={(amount) => setSoldTokenAmount(amount)}
             showTokenBalance={true}
             tokenBalance={formattedSoldTokenBalance}
+            placeholder="Amount to sell"
             tokenComponent={
               <TokensDropdown
                 tokens={tokensList}
@@ -343,6 +344,7 @@ const Sell = () => {
             amount={collateralAmount}
             onChangeAmount={(amount) => setCollateralAmount(amount)}
             showTokenBalance={false}
+            placeholder="Collateral amount"
             tokenComponent={
               <TokensDropdown
                 tokens={tokensList}
