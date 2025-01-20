@@ -47,9 +47,9 @@ const TokensDropdown: FC<TokensDropdownProps> = ({
   }, []);
 
   return (
-    <div ref={dropdownRef} className="relative inline-block w-full max-w-xs">
+    <div ref={dropdownRef} className="relative inline-block">
       <button
-        className="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-white bg-[#1e1e1e] border border-[#333333] rounded-lg shadow-md hover:bg-[#2a2a2a]"
+        className="flex items-center justify-end w-max gap-2 p-2 text-sm font-medium text-white bg-[#1e1e1e] border border-[#333333] rounded-lg shadow-md hover:bg-[#2a2a2a]"
         onClick={(event) => {
           event.preventDefault();
           toggleDropdown();
