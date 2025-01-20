@@ -8,10 +8,14 @@ import { convertSubgraphToken } from "@/utils/tokenMethods";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
 import FeesTable from "@/components/FeesTable";
+import { Fragment, useState } from "react";
+import ClaimModal from "@/components/ClaimModal";
 
 const Claim = () => {
   const { setCreatorFees, creatorFees } = useStore();
   const { address: connectedAddress } = useAccount();
+
+  const [selectedFee, setSelectedFee] = useState<CreatorFee | null>(null);
 
   const creatorFeesGetter = async (): Promise<CreatorFee[]> => {
     try {
@@ -45,10 +49,22 @@ const Claim = () => {
   useAsyncEffect(creatorFeesGetter, creatorFeesSetter, [connectedAddress]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Claim your rewards</h1>
-      <FeesTable creatorFees={creatorFees} />
-    </div>
+    <Fragment>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Claim your rewards</h1>
+        <FeesTable
+          creatorFees={creatorFees}
+          onSelectFee={(fee: CreatorFee) => setSelectedFee(fee)}
+        />
+      </div>
+      {selectedFee !== null ? (
+        <ClaimModal
+          visible={selectedFee !== null}
+          creatorFee={selectedFee}
+          onClose={() => setSelectedFee(null)}
+        />
+      ) : null}
+    </Fragment>
   );
 };
 

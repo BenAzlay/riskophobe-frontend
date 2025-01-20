@@ -1,14 +1,19 @@
 import CreatorFee from "@/app/types/CreatorFee";
 import React, { useState } from "react";
 import TokenSymbolAndLogo from "./TokenSymbolAndLogo";
-import { abbreviateAmount, convertQuantityFromWei, numberWithCommas } from "@/utils/utilFunc";
+import {
+  abbreviateAmount,
+  convertQuantityFromWei,
+  numberWithCommas,
+} from "@/utils/utilFunc";
 import Tooltip from "./Tooltip";
 
 type Props = {
   creatorFees: CreatorFee[];
+  onSelectFee: (fee: CreatorFee) => void;
 };
 
-const FeesTable: React.FC<Props> = ({ creatorFees }) => {
+const FeesTable: React.FC<Props> = ({ creatorFees, onSelectFee }) => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const handleSort = () => {
@@ -32,10 +37,16 @@ const FeesTable: React.FC<Props> = ({ creatorFees }) => {
           <TokenSymbolAndLogo symbol={token.symbol} logo={token.logo} />
         </td>
         <td>
-          <Tooltip message={numberWithCommas(amount)}>{abbreviateAmount(amount, "", 3)}</Tooltip>
+          <Tooltip message={numberWithCommas(amount)}>
+            {abbreviateAmount(amount, "", 3)}
+          </Tooltip>
         </td>
         <td>
-          <button className="btn btn-primary btn-sm">
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => onSelectFee(fee)}
+            disabled={amountWei <= 0}
+          >
             CLAIM {token.symbol}
           </button>
         </td>
