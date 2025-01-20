@@ -14,9 +14,12 @@ function App() {
 
   const depositsGetter = async (): Promise<Deposit[]> => {
     try {
-      if (!ethers.isAddress(connectedAddress)) throw new Error("No account connected");
+      if (!ethers.isAddress(connectedAddress))
+        throw new Error("No account connected");
       // Fetch user's deposits from subgraph
-      const response = await fetch(`/api/fetchDeposits?participant=${connectedAddress}`);
+      const response = await fetch(
+        `/api/fetchDeposits?participant=${connectedAddress}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch deposits for user");
       }
@@ -28,11 +31,27 @@ function App() {
   };
   const depositsSetter = (_deposits: Deposit[]) => {
     setDeposits(_deposits);
-  }
+  };
   useAsyncEffect(depositsGetter, depositsSetter, [connectedAddress]);
 
   return (
     <Fragment>
+      <div className="hero bg-base-200">
+        <div className="hero-content text-center">
+          <div className="space-y-6 justify-items-center">
+            <h1 className="text-5xl font-bold font-nimbus text-primary">
+              Invest Risk-Free. Get Money Back.
+            </h1>
+            <h2 className="text-2xl font-semibold text-left">
+              🤩 Choose a token to invest in
+              <br />
+              😇 Return it if the price drops
+              <br />
+              🤑 Reclaim your investment safely
+            </h2>
+          </div>
+        </div>
+      </div>
       <div className="p-6">
         <div
           id="offers-grid"
