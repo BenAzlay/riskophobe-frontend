@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import Tooltip from "./Tooltip";
+import { abbreviateAmount, numberWithCommas } from "@/utils/utilFunc";
 
 interface RangeSliderProps {
   value: number;
@@ -31,7 +33,9 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
 
   return (
     <div className="flex items-center gap-4 w-full relative">
-      <span className="text-sm font-medium">{min}</span>
+      <Tooltip message={`Minimum: ${numberWithCommas(min)}`}>
+        <span className="text-sm font-medium">{abbreviateAmount(min, '', 2)}</span>
+      </Tooltip>
       <div className="relative w-full">
         <input
           type="range"
@@ -75,7 +79,11 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
           }}
         ></div>
       </div>
-      <span className="text-sm font-medium">{max}</span>
+      <Tooltip message={`Maximum: ${numberWithCommas(max)}`}>
+        <span className="text-sm font-medium">
+          {abbreviateAmount(max, "", 2)}
+        </span>
+      </Tooltip>
     </div>
   );
 };

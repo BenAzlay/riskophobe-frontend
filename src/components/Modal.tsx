@@ -23,7 +23,7 @@ const Modal: React.FC<ModalProps> = ({ title, visible, onClose, children }) => {
 
   return (
     <dialog ref={modalRef} className="modal">
-      <div className="modal-box">
+      <div className="modal-box overflow-visible">
         {title && <h3 className="font-bold text-lg">{title}</h3>}
         <div className="py-4">{children}</div>
       </div>
