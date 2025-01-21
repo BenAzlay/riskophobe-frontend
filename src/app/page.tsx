@@ -3,18 +3,62 @@
 import useStore from "@/store/useStore";
 import { Fragment, useMemo, useState } from "react";
 import OfferItem from "@/components/OfferItem";
-import { useAsyncEffect } from "@/utils/customHooks";
+import {
+  useAsyncEffect,
+  useVisibilityIntervalEffect,
+} from "@/utils/customHooks";
 import { useAccount } from "wagmi";
-import { Deposit } from "@/utils/queries";
+import { Deposit, Offer as SubgraphOffer } from "@/utils/queries";
 import { ethers } from "ethers";
 import ERC20Token from "./types/ERC20Token";
 import Decimal from "decimal.js";
 import { abbreviateAmount, compareEthereumAddresses } from "@/utils/utilFunc";
 import TokenSymbolAndLogo from "@/components/TokenSymbolAndLogo";
+import { getTokenDetails } from "@/utils/tokenMethods";
 
 function App() {
-  const { offers, setDeposits, deposits } = useStore();
+  const { setOffers, offers, setDeposits, deposits } = useStore();
   const { address: connectedAddress } = useAccount() as { address: string };
+
+  // Fetch offers every 60s from subgraph
+  const fetchOffers = async () => {
+    try {
+      // Fetch offers from subgraph
+      const response = await fetch("/api/fetchOffers");
+      if (!response.ok) {
+        throw new Error("Failed to fetch offers");
+      }
+      const { offers: subgraphOffers } = (await response.json()) as {
+        offers: SubgraphOffer[];
+      };
+      // Isolate the offers tokens to convert them to ERC20Token type
+      const tokenAddresses = subgraphOffers.flatMap((offer) => [
+        offer.soldToken.id,
+        offer.collateralToken.id,
+      ]);
+      const tokensWithDetails = await getTokenDetails(tokenAddresses);
+      // Add token logos to convert them into ERC20Token type
+      const offers = subgraphOffers
+        .map((offer: SubgraphOffer) => {
+          const soldToken = tokensWithDetails.find((token) =>
+            compareEthereumAddresses(token.address, offer.soldToken.id)
+          )!;
+          const collateralToken = tokensWithDetails.find((token) =>
+            compareEthereumAddresses(token.address, offer.collateralToken.id)
+          )!;
+          return {
+            ...offer,
+            soldToken,
+            collateralToken,
+          };
+        })
+        .filter(Boolean);
+      setOffers(offers);
+    } catch (e) {
+      console.error("fetchOffers ERROR", e);
+    }
+  };
+  useVisibilityIntervalEffect(fetchOffers, 60000, []); // Refetch offers every 60s
 
   const filterTypeOptions = [
     {
@@ -81,13 +125,7 @@ function App() {
           offer.collateralToken === tokenFilter;
         return matchesType && matchesToken;
       }),
-    [
-      offers,
-      boughtOffers,
-      createrOffers,
-      filterType,
-      tokenFilter,
-    ]
+    [offers, boughtOffers, createrOffers, filterType, tokenFilter]
   );
 
   const depositsGetter = async (): Promise<Deposit[]> => {

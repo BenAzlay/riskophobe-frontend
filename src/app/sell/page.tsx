@@ -140,8 +140,9 @@ const Sell = () => {
 
   useEffect(() => {
     const getAndSetTokensList = async () => {
-      const tokenDetails = await getTokenDetails(CONSTANTS.TOKENS);
-      console.log(`tokenDetails:`, tokenDetails)
+      const tokenDetails = await getTokenDetails(
+        CONSTANTS.TOKENS.map(({ address }) => address)
+      );
       setTokensList(tokenDetails);
       setSoldToken(tokenDetails[0]);
       setCollateralToken(tokenDetails[1]);

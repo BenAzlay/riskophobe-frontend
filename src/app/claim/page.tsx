@@ -4,12 +4,13 @@ import useStore from "@/store/useStore";
 import { useAsyncEffect } from "@/utils/customHooks";
 import { CreatorFee as SubgraphCreatorFee } from "@/utils/queries";
 import CreatorFee from "../types/CreatorFee";
-import { convertSubgraphToken } from "@/utils/tokenMethods";
+import { convertSubgraphToken, getTokenDetails } from "@/utils/tokenMethods";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
 import FeesTable from "@/components/FeesTable";
 import { Fragment, useState } from "react";
 import ClaimModal from "@/components/ClaimModal";
+import { compareEthereumAddresses } from "@/utils/utilFunc";
 
 const Claim = () => {
   const { setCreatorFees, creatorFees } = useStore();
@@ -28,16 +29,21 @@ const Claim = () => {
       if (!response.ok) {
         throw new Error("Failed to fetch creator fees for user");
       }
-      const { creatorFees: subgraphCreatorFees } = await response.json();
+      const { creatorFees: subgraphCreatorFees } = (await response.json()) as {
+        creatorFees: SubgraphCreatorFee[];
+      };
+      const tokenAddresses = subgraphCreatorFees.map((fee) => fee.token.id);
+      const tokensWithDetails = await getTokenDetails(tokenAddresses);
       // Add token logos to convert them into ERC20Token type
-      const creatorFees = subgraphCreatorFees.map((fee: SubgraphCreatorFee) => {
-        const token = convertSubgraphToken(fee.token);
+      const creatorFees = subgraphCreatorFees.map((fee) => {
+        const token = tokensWithDetails.find((token) =>
+          compareEthereumAddresses(token.address, fee.token.id)
+        )!;
         return {
           ...fee,
           token,
         };
       });
-      console.log(`creatorFees:`, creatorFees);
       return creatorFees;
     } catch (e) {
       return [];
