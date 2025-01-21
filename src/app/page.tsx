@@ -10,10 +10,26 @@ import { ethers } from "ethers";
 import ERC20Token from "./types/ERC20Token";
 import Decimal from "decimal.js";
 import { compareEthereumAddresses } from "@/utils/utilFunc";
+import TokenSymbolAndLogo from "@/components/TokenSymbolAndLogo";
 
 function App() {
   const { offers, setDeposits, deposits } = useStore();
   const { address: connectedAddress } = useAccount();
+
+  const filterTypeOptions = [
+    {
+      id: "all",
+      label: "All offers",
+    },
+    {
+      id: "created",
+      label: "Created offers",
+    },
+    {
+      id: "bought",
+      label: "Bought offers",
+    },
+  ];
 
   const [filterType, setFilterType] = useState<string>("all"); // all | created | bought
   const [tokenFilter, setTokenFilter] = useState<ERC20Token | null>(null);
@@ -34,7 +50,10 @@ function App() {
       offers.filter((offer) => {
         let matchesType: boolean;
         if (filterType === "created") {
-          matchesType = compareEthereumAddresses(offer.creator, connectedAddress as string);
+          matchesType = compareEthereumAddresses(
+            offer.creator,
+            connectedAddress as string
+          );
         } else if (filterType === "bought") {
           matchesType = !!deposits.some(
             (deposit) =>
@@ -42,7 +61,6 @@ function App() {
               new Decimal(deposit.netCollateralAmount).gt(0)
           );
         } else matchesType = true;
-        console.log(`matchesType:`, matchesType)
         const matchesToken =
           tokenFilter === null ||
           offer.soldToken === tokenFilter ||
@@ -78,32 +96,19 @@ function App() {
     <Fragment>
       {/* Filter Buttons */}
       <div className="flex flex-wrap justify-center gap-4 mb-6">
-        {/* Offer Type Filters */}
-        <button
-          className={`px-4 py-2 rounded-md ${
-            filterType === "all" ? "bg-indigo-500" : "bg-gray-700"
-          } hover:bg-indigo-600 text-white`}
-          onClick={() => setFilterType("all")}
-        >
-          All Offers
-        </button>
-        <button
-          className={`px-4 py-2 rounded-md ${
-            filterType === "created" ? "bg-indigo-500" : "bg-gray-700"
-          } hover:bg-indigo-600 text-white`}
-          onClick={() => setFilterType("created")}
-        >
-          Created Offers
-        </button>
-        <button
-          className={`px-4 py-2 rounded-md ${
-            filterType === "bought" ? "bg-indigo-500" : "bg-gray-700"
-          } hover:bg-indigo-600 text-white`}
-          onClick={() => setFilterType("bought")}
-        >
-          Bought Offers
-        </button>
-
+        <div className="join">
+          {filterTypeOptions.map(({ id, label }) => (
+            <button
+              key={id}
+              className={`join-item btn ${
+                filterType === id ? "bg-indigo-500" : "bg-gray-700"
+              } hover:bg-indigo-600 text-white`}
+              onClick={() => setFilterType(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         {/* Token Filters */}
         {offerTokens.map((token) => (
           <button
@@ -113,7 +118,7 @@ function App() {
             } hover:bg-indigo-600 text-white`}
             onClick={() => setTokenFilter(tokenFilter === token ? null : token)}
           >
-            {token.symbol}
+            <TokenSymbolAndLogo symbol={token.symbol} logo={token.logo} />
           </button>
         ))}
       </div>
