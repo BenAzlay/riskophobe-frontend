@@ -9,25 +9,25 @@ import { Deposit } from "@/utils/queries";
 import { ethers } from "ethers";
 import ERC20Token from "./types/ERC20Token";
 import Decimal from "decimal.js";
-import { compareEthereumAddresses } from "@/utils/utilFunc";
+import { abbreviateAmount, compareEthereumAddresses } from "@/utils/utilFunc";
 import TokenSymbolAndLogo from "@/components/TokenSymbolAndLogo";
 
 function App() {
   const { offers, setDeposits, deposits } = useStore();
-  const { address: connectedAddress } = useAccount();
+  const { address: connectedAddress } = useAccount() as { address: string };
 
   const filterTypeOptions = [
     {
       id: "all",
-      label: "All offers",
+      label: "All",
     },
     {
       id: "created",
-      label: "Created offers",
+      label: "Created",
     },
     {
       id: "bought",
-      label: "Bought offers",
+      label: "Bought",
     },
   ];
 
@@ -44,22 +44,36 @@ function App() {
     return Array.from(new Set(tokens));
   }, [offers]);
 
-  console.log(`deposits:`, deposits);
+  const createrOffers = useMemo(
+    () =>
+      offers.filter((offer) =>
+        compareEthereumAddresses(offer.creator, connectedAddress)
+      ),
+    [offers, connectedAddress]
+  );
+
+  const boughtOffers = useMemo(
+    () =>
+      offers.filter(
+        (offer) =>
+          !!deposits.some(
+            (deposit) =>
+              deposit.offerId === offer.id &&
+              compareEthereumAddresses(deposit.participant, connectedAddress) &&
+              new Decimal(deposit.netCollateralAmount).gt(0)
+          )
+      ),
+    [offers, deposits, connectedAddress]
+  );
+
   const filteredOffers = useMemo(
     () =>
       offers.filter((offer) => {
         let matchesType: boolean;
         if (filterType === "created") {
-          matchesType = compareEthereumAddresses(
-            offer.creator,
-            connectedAddress as string
-          );
+          matchesType = createrOffers.some(({ id }) => id === offer.id);
         } else if (filterType === "bought") {
-          matchesType = !!deposits.some(
-            (deposit) =>
-              deposit.offerId === offer.id &&
-              new Decimal(deposit.netCollateralAmount).gt(0)
-          );
+          matchesType = boughtOffers.some(({ id }) => id === offer.id);
         } else matchesType = true;
         const matchesToken =
           tokenFilter === null ||
@@ -67,7 +81,13 @@ function App() {
           offer.collateralToken === tokenFilter;
         return matchesType && matchesToken;
       }),
-    [offers, deposits, filterType, tokenFilter]
+    [
+      offers,
+      boughtOffers,
+      createrOffers,
+      filterType,
+      tokenFilter,
+    ]
   );
 
   const depositsGetter = async (): Promise<Deposit[]> => {
@@ -92,6 +112,17 @@ function App() {
   };
   useAsyncEffect(depositsGetter, depositsSetter, [connectedAddress]);
 
+  const getOffersCount = (typeOption: string): number => {
+    switch (typeOption) {
+      case "created":
+        return createrOffers.length;
+      case "bought":
+        return boughtOffers.length;
+      default:
+        return offers.length;
+    }
+  };
+
   const filterButtons = () => (
     <Fragment>
       {/* Filter Buttons */}
@@ -105,7 +136,7 @@ function App() {
               } hover:bg-indigo-600 text-white`}
               onClick={() => setFilterType(id)}
             >
-              {label}
+              {label} ({abbreviateAmount(getOffersCount(id))})
             </button>
           ))}
         </div>
@@ -113,7 +144,7 @@ function App() {
         {offerTokens.map((token) => (
           <button
             key={token.address}
-            className={`px-4 py-2 rounded-md ${
+            className={`btn ${
               tokenFilter === token ? "bg-indigo-500" : "bg-gray-700"
             } hover:bg-indigo-600 text-white`}
             onClick={() => setTokenFilter(tokenFilter === token ? null : token)}
