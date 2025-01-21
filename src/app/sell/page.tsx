@@ -140,15 +140,14 @@ const Sell = () => {
 
   useEffect(() => {
     const getAndSetTokensList = async () => {
-      const { WETH, WBTC, USDC } = CONSTANTS.TOKEN_ADDRESSES;
-
-      const tokenDetails = await getTokenDetails([WETH, USDC, WBTC]);
+      const tokenDetails = await getTokenDetails(CONSTANTS.TOKENS);
+      console.log(`tokenDetails:`, tokenDetails)
       setTokensList(tokenDetails);
       setSoldToken(tokenDetails[0]);
       setCollateralToken(tokenDetails[1]);
     };
     getAndSetTokensList();
-  }, [CONSTANTS.TOKEN_ADDRESSES]);
+  }, [CONSTANTS.TOKENS]);
 
   const getSoldTokenBalance = async () =>
     await getTokenBalance(soldToken?.address, connectedAddress);
@@ -329,6 +328,7 @@ const Sell = () => {
             showTokenBalance={true}
             tokenBalance={formattedSoldTokenBalance}
             placeholder="Amount to sell"
+            tokenPrice={soldToken?.price ?? 0}
             tokenComponent={
               <TokensDropdown
                 tokens={tokensList}
@@ -345,6 +345,7 @@ const Sell = () => {
             onChangeAmount={(amount) => setCollateralAmount(amount)}
             showTokenBalance={false}
             placeholder="Collateral amount"
+            tokenPrice={collateralToken?.price ?? 0}
             tokenComponent={
               <TokensDropdown
                 tokens={tokensList}
