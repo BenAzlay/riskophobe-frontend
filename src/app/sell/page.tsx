@@ -352,7 +352,7 @@ const Sell = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 items-center py-6">
+    <div className="flex flex-col gap-2 items-center py-6">
       <h1 className="text-2xl font-bold mb-4">Create an Offer</h1>
       <form className="space-y-4 max-w-lg border-2 rounded-md border-primary p-2 sm:p-4">
         <div className="space-y-2">
