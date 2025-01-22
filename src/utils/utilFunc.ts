@@ -96,7 +96,8 @@ export const calculateExchangeRate = (
   collateralTokenAmount: number | string
 ): string => {
   try {
-    if (new Decimal(collateralTokenAmount).lte(0)) throw new Error("Invalid collateral amount");
+    if (new Decimal(collateralTokenAmount).lte(0))
+      throw new Error("Invalid collateral amount");
     const exchangeRate = new Decimal(soldTokenAmount)
       .mul(10 ** 18)
       .div(collateralTokenAmount);
@@ -134,7 +135,6 @@ export const calculateCollateralPerOneSoldToken = (
 
     return result.toString();
   } catch (error) {
-    console.error("calculateCollateralPerOneSoldToken ERROR:", error);
     return "0";
   }
 };
@@ -163,7 +163,6 @@ export const calculateSoldTokenForCollateral = (
       .div(new Decimal(10).pow(18));
     return result.toFixed(0);
   } catch (error) {
-    console.error("calculateSoldTokenForCollateral ERROR:", error);
     return "0";
   }
 };
@@ -342,7 +341,10 @@ export function numberWithCommas(x: string | number | Decimal): string {
     const [integerPart, decimalPart] = num.toFixed(2).split(".");
 
     // Add commas to the integer part
-    const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    const formattedIntegerPart = integerPart.replace(
+      /\B(?=(\d{3})+(?!\d))/g,
+      ","
+    );
 
     // Return the formatted number
     return `${formattedIntegerPart}.${decimalPart}`;
@@ -351,3 +353,24 @@ export function numberWithCommas(x: string | number | Decimal): string {
     return "0.00";
   }
 }
+
+export const formatDuration = (seconds: number): string => {
+  // Define time units in seconds
+  const units = [
+    { label: "day", value: 86400 }, // 60 * 60 * 24
+    { label: "hour", value: 3600 }, // 60 * 60
+    { label: "minute", value: 60 },
+    { label: "second", value: 1 },
+  ];
+
+  // Find the largest unit that fits the duration
+  for (const unit of units) {
+    if (seconds >= unit.value) {
+      const count = Math.floor(seconds / unit.value);
+      return `${count} ${unit.label}${count > 1 ? "s" : ""}`;
+    }
+  }
+
+  // If the duration is 0 seconds, return "0 seconds"
+  return "0 seconds";
+};
