@@ -274,6 +274,8 @@ const Sell = () => {
       if (currentTs >= startDateTs - 300) startDateTs += 300;
       const endDateTs: number = getTimestampSecondsFromDate(endDate);
 
+      const creatorFeeBp = creatorFee * 100;
+
       const { request } = await simulateContract(config, {
         abi: RiskophobeProtocolAbi,
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
@@ -283,7 +285,7 @@ const Sell = () => {
           soldTokenAddress as `0x${string}`,
           BigInt(soldTokenAmountWei),
           BigInt(exchangeRate),
-          creatorFee,
+          creatorFeeBp,
           startDateTs,
           endDateTs,
         ],
@@ -350,7 +352,7 @@ const Sell = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 items-center">
+    <div className="flex flex-col gap-6 items-center py-6">
       <h1 className="text-2xl font-bold mb-4">Create an Offer</h1>
       <form className="space-y-4 max-w-lg border-2 rounded-md border-primary p-2 sm:p-4">
         <div className="space-y-2">
