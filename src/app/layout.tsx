@@ -1,6 +1,6 @@
 "use client";
 
-import '../styles/globals.css';
+import "../styles/globals.css";
 import { Inter } from "next/font/google";
 import { Fragment, type ReactNode } from "react";
 
@@ -8,6 +8,7 @@ import { Providers } from "./providers";
 import Navbar from "@/components/Navbar";
 import Head from "next/head";
 import ConnectWalletModal from "@/components/ConnectWalletModal";
+import BottomNav from "@/components/BottomNav";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,7 +24,10 @@ export default function RootLayout(props: { children: ReactNode }) {
         <body className={inter.className}>
           <Providers>
             <Navbar />
+            <div className="mb-16 sm:mb-0">
             {props.children}
+            </div>
+            <BottomNav />
             <ConnectWalletModal />
           </Providers>
         </body>

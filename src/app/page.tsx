@@ -199,10 +199,10 @@ function App() {
       <div className="hero bg-base-200">
         <div className="hero-content text-center">
           <div className="space-y-6 justify-items-center">
-            <h1 className="text-5xl font-bold font-nimbus text-primary">
+            <h1 className="text-3xl sm:text-5xl font-bold font-nimbus text-primary">
               Invest Risk-Free. Get Money Back.
             </h1>
-            <h2 className="text-2xl font-semibold text-left">
+            <h2 className="text-xl sm:text-2xl font-semibold text-left">
               🤩 Choose a token to invest in
               <br />
               😇 Return it if the price drops
