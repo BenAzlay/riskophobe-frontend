@@ -4,7 +4,8 @@
 
 @font-face {
   font-family: "Nimbus";
-  src: url("/fonts/NimbusRomNo9L-Med.otf") format("otf"),
+  src:
+    url("/fonts/NimbusRomNo9L-Med.otf") format("otf"),
     url("/fonts/NimbusRomNo9L-MedIta.otf") format("otf"),
     url("/fonts/NimbusRomNo9L-Reg.otf") format("otf"),
     url("/fonts/NimbusRomNo9L-RegIta.otf") format("otf");
@@ -34,7 +35,15 @@ html {
   @apply text-white font-bold;
 }
 
-input[type='range']::-webkit-slider-thumb {
+.field-title {
+  @apply font-medium text-lg;
+}
+
+.field-subtitle {
+  @apply text-gray-500 text-sm;
+}
+
+input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 24px;
@@ -43,16 +52,23 @@ input[type='range']::-webkit-slider-thumb {
   border: none;
 }
 
-input[type='range']::-moz-range-thumb {
+input[type="range"]::-moz-range-thumb {
   width: 24px;
   height: 24px;
   background-color: transparent;
   border: none;
 }
 
-input[type='range']::-ms-thumb {
+input[type="range"]::-ms-thumb {
   width: 24px;
   height: 24px;
   background-color: transparent;
   border: none;
+}
+
+.react-datepicker-wrapper {
+  width: 100% !important;
+}
+.react-datepicker__input-container {
+  width: 100% !important;
 }

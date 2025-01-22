@@ -96,6 +96,7 @@ export const calculateExchangeRate = (
   collateralTokenAmount: number | string
 ): string => {
   try {
+    if (new Decimal(collateralTokenAmount).lte(0)) throw new Error("Invalid collateral amount");
     const exchangeRate = new Decimal(soldTokenAmount)
       .mul(10 ** 18)
       .div(collateralTokenAmount);
@@ -256,29 +257,16 @@ export const abbreviateAmount = (
   return `${isNegative ? "-" : ""}${prefix}${value}${suffix}`;
 };
 
-/**
- * Formats a date into a human-readable string with optional time display.
- *
- * @param date - The date object to format.
- * @param showTime - Whether to include the time in the formatted string. Defaults to true.
- * @returns A formatted date string.
- */
-export const getFormattedDate = (
-  date: Date,
-  showTime: boolean = true
-): string => {
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-  };
+export const getFormattedDate = (date: Date | string): string => {
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const year = dateObj.getFullYear();
+  const hours = String(dateObj.getHours()).padStart(2, "0");
+  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+  const seconds = String(dateObj.getSeconds()).padStart(2, "0");
 
-  const dateString = date.toLocaleDateString(undefined, options);
-  const timeString = showTime
-    ? `, ${date.toLocaleTimeString(undefined, { hour12: false })}`
-    : "";
-
-  return `${dateString}${timeString}`;
+  return `${day}:${month}:${year}, ${hours}:${minutes}:${seconds}`;
 };
 
 /**
@@ -293,7 +281,7 @@ export const getFormattedDateFromSecondsTimestamp = (
   showTime: boolean = false
 ): string => {
   const date = new Date(ts * 1000);
-  return getFormattedDate(date, showTime);
+  return getFormattedDate(date);
 };
 
 /**

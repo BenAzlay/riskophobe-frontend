@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import {
   calculateCollateralPerOneSoldToken,
   calculateExchangeRate,
   convertQuantityFromWei,
   convertQuantityToWei,
+  getFormattedDate,
+  getFormattedDateFromSecondsTimestamp,
   getTimestampSecondsFromDate,
 } from "@/utils/utilFunc";
 import CONSTANTS from "@/utils/constants";
@@ -36,6 +38,12 @@ import TransactionButton from "@/components/TransactionButton";
 import { base } from "viem/chains";
 import SwitchChainButton from "@/components/SwitchChainButton";
 import RangeSlider from "@/components/RangeSlider";
+import dynamic from "next/dynamic";
+import DateRangePicker from "@/components/DateRangePicker";
+
+const ClientOnlyDate = dynamic(() => import("@/components/ClientOnlyDate"), {
+  ssr: false,
+});
 
 const currentDate = new Date();
 const oneMonthFromNow: Date = new Date(
@@ -81,8 +89,8 @@ const Sell = () => {
   const [soldTokenAmount, setSoldTokenAmount] = useState<string>("");
   const [collateralAmount, setCollateralAmount] = useState<string>("");
   const [creatorFee, setCreatorFee] = useState<number>(0); // fee in basis points
-  const [startDate, setStartDate] = useState<Date | null>(currentDate);
-  const [endDate, setEndDate] = useState<Date | null>(oneMonthFromNow);
+  const [startDate, setStartDate] = useState<Date>(currentDate);
+  const [endDate, setEndDate] = useState<Date>(oneMonthFromNow);
 
   const soldTokenAmountWei = useMemo(
     () => convertQuantityToWei(soldTokenAmount, soldToken?.decimals ?? 18),
@@ -184,11 +192,18 @@ const Sell = () => {
   );
 
   const onChangeStartDate = (_startDate: Date | null) => {
+    if (!_startDate) return;
     setStartDate(_startDate);
   };
 
   const onChangeEndDate = (_endDate: Date | null) => {
+    if (!_endDate) return;
     setEndDate(_endDate);
+  };
+
+  const handleDateChange = (start: Date | null, end: Date | null) => {
+    onChangeStartDate(start);
+    onChangeEndDate(end);
   };
 
   // useEffect to handle approve transaction success
@@ -281,6 +296,22 @@ const Sell = () => {
     }
   };
 
+  const offerSummaryContent = () => (
+    <Fragment>
+      <p>
+        💱 Exchange rate: {collateralPerSoldToken} {collateralToken?.symbol} per
+        1 {soldToken?.symbol}
+      </p>
+      <p>🤑 User fee: {creatorFee}%</p>
+      <p>
+        🏁 Starts on: <ClientOnlyDate date={startDate} />
+      </p>
+      <p>
+        ⌛ Ends on: <ClientOnlyDate date={endDate} />
+      </p>
+    </Fragment>
+  );
+
   const transactionButton = () => {
     if (!connectedAddress) return <SignInButton />;
     if (connectedChainId !== base.id) return <SwitchChainButton />;
@@ -319,17 +350,17 @@ const Sell = () => {
   };
 
   return (
-    <div className="page-container">
+    <div className="flex flex-col gap-6 items-center">
       <h1 className="text-2xl font-bold mb-4">Create an Offer</h1>
-      <form className="space-y-4 max-w-md">
-        <div>
-          <label className="block text-sm font-medium">Sold Token Amount</label>
+      <form className="space-y-4 max-w-lg border-2 rounded-md border-primary p-2 sm:p-4">
+        <div className="space-y-2">
+          <label className="field-title">What do you want to sell?</label>
           <TokenAmountField
             amount={soldTokenAmount}
             onChangeAmount={(amount) => setSoldTokenAmount(amount)}
             showTokenBalance={true}
             tokenBalance={formattedSoldTokenBalance}
-            placeholder="Amount to sell"
+            placeholder="Sold amount"
             tokenPrice={soldToken?.price ?? 0}
             tokenComponent={
               <TokensDropdown
@@ -340,8 +371,8 @@ const Sell = () => {
             }
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium">Collateral Amount</label>
+        <div className="space-y-2">
+          <label className="field-title">What should it be sold for?</label>
           <TokenAmountField
             amount={collateralAmount}
             onChangeAmount={(amount) => setCollateralAmount(amount)}
@@ -358,17 +389,15 @@ const Sell = () => {
           />
         </div>
 
-        <p>Exchange rate: {exchangeRate}</p>
-        <p>
-          {collateralToken?.symbol} per 1 {soldToken?.symbol}:{" "}
-          {collateralPerSoldToken}
-        </p>
-
         {/* User Fee */}
-        <div>
-          <label className="block text-sm font-medium">
-            User Fee (Basis Points)
-          </label>
+        <div className="space-y-2">
+          <div>
+            <label className="field-title">User Fee (%)</label>
+            <div className="field-subtitle">
+              You will earn this fee (in collateral token) each time a user buys
+              from your offer
+            </div>
+          </div>
           <RangeSlider
             min={0}
             max={10}
@@ -377,26 +406,23 @@ const Sell = () => {
             onChange={(newValue) => setCreatorFee(newValue)}
             displayTooltip={(value) => `${value}%`}
           />
-          <div className="text-sm text-gray-500">{creatorFee / 100}%</div>
         </div>
         {/* Dates */}
-        <div>
-          <label className="block text-sm font-medium">Start Date</label>
-          <DateField
-            selectedDate={startDate}
-            onSelectDate={onChangeStartDate}
-            minDate={new Date()}
+        <div className="space-y-2">
+          <label className="field-title">Start/end dates</label>
+          <DateRangePicker
+            onChange={handleDateChange}
+            defaultStartDate={currentDate}
+            defaultEndDate={oneMonthFromNow}
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium">End Date</label>
-          <DateField
-            selectedDate={endDate}
-            onSelectDate={onChangeEndDate}
-            minDate={startDate ?? new Date()}
-          />
+        <div className="collapse  collapse-arrow border-2 border-primary rounded-md bg-[#6B46C120]">
+          <input type="checkbox" />
+          <div className="collapse-title text-xl font-medium">
+            Offer summary
+          </div>
+          <div className="collapse-content">{offerSummaryContent()}</div>
         </div>
-
         {/* Submit */}
         {transactionButton()}
       </form>
