@@ -34,7 +34,9 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
   return (
     <div className="flex items-center gap-4 w-full relative">
       <Tooltip message={`Minimum: ${numberWithCommas(min)}`}>
-        <span className="text-sm font-medium">{abbreviateAmount(min, '', 2)}</span>
+        <span className="text-sm font-medium">
+          {abbreviateAmount(min, "", 2)}
+        </span>
       </Tooltip>
       <div className="relative w-full">
         <input
@@ -76,6 +78,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
             top: "50%",
             width: "24px",
             height: "24px",
+            zIndex: 20,
           }}
         ></div>
       </div>

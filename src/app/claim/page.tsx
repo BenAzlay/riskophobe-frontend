@@ -4,7 +4,7 @@ import useStore from "@/store/useStore";
 import { useAsyncEffect } from "@/utils/customHooks";
 import { CreatorFee as SubgraphCreatorFee } from "@/utils/queries";
 import CreatorFee from "../types/CreatorFee";
-import { convertSubgraphToken, getTokenDetails } from "@/utils/tokenMethods";
+import { getTokenDetails } from "@/utils/tokenMethods";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
 import FeesTable from "@/components/FeesTable";

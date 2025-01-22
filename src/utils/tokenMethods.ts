@@ -166,11 +166,3 @@ export const getTokenAllowance = async (
   }
 };
 
-export const convertSubgraphToken = (token: Token): ERC20Token => {
-  const logo: string = `/tokenLogos/${token.symbol}.png`;
-  return {
-    ...token,
-    address: token.id,
-    logo,
-  };
-};
