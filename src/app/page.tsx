@@ -187,7 +187,7 @@ function App() {
             } hover:bg-indigo-600 text-white`}
             onClick={() => setTokenFilter(tokenFilter === token ? null : token)}
           >
-            <TokenSymbolAndLogo symbol={token.symbol} logo={token.logo} />
+            <TokenSymbolAndLogo symbol={token.symbol} />
           </button>
         ))}
       </div>

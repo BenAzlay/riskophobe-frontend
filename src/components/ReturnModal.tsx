@@ -316,7 +316,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
         <RangeSlider
           value={Number(soldTokenIn)}
           onChange={handleSoldTokenInChange}
-          image={soldToken.logo}
+          tokenSymbol={soldToken.symbol}
           min={0}
           max={Number(userMaxSoldTokenIn)}
           step={step}

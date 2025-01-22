@@ -1,25 +1,26 @@
 import React, { useState } from "react";
 import Tooltip from "./Tooltip";
 import { abbreviateAmount, numberWithCommas } from "@/utils/utilFunc";
+import TokenLogo from "./TokenLogo";
 
 interface RangeSliderProps {
   value: number;
   onChange: (newValue: number) => void;
-  image: string;
   min: number;
   max: number;
   step: number;
+  tokenSymbol?: string;
   displayTooltip?: (value: number) => string;
 }
 
 const RangeSlider: React.FC<RangeSliderProps> = ({
   value,
   onChange,
-  image,
   min,
   max,
   step,
   displayTooltip = (value) => `${value}`,
+  tokenSymbol,
 }) => {
   const [isHovering, setIsHovering] = useState(false);
 
@@ -70,17 +71,16 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
         </div>
         <div
           id="thumb"
-          className="absolute bg-no-repeat bg-center bg-cover pointer-events-none"
+          className="absolute pointer-events-none"
           style={{
-            backgroundImage: `url(${image})`,
             left: `${((value - min) / (max - min)) * 100}%`,
             transform: "translate(-50%, -50%)",
             top: "50%",
-            width: "24px",
-            height: "24px",
             zIndex: 20,
           }}
-        ></div>
+          >
+          {tokenSymbol ? <TokenLogo symbol={tokenSymbol} size={24} /> : <div className="rounded-full w-6 h-6 bg-primary" />}
+        </div>
       </div>
       <Tooltip message={`Maximum: ${numberWithCommas(max)}`}>
         <span className="text-sm font-medium">

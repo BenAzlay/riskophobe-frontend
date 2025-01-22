@@ -19,6 +19,7 @@ import ReturnModal from "./ReturnModal";
 import Tooltip from "./Tooltip";
 import AddModal from "./AddModal";
 import RemoveModal from "./RemoveModal";
+import TokenLogo from "./TokenLogo";
 
 interface OfferItemProps {
   offer: Offer;
@@ -129,7 +130,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
               onClickAction={() => setAddModalOpen(true)}
               disabled={!userIsCreator || offerIsEnded}
             >
-              <img src={soldToken.logo} width={14} height={14} alt="logo" /> ADD{" "}
+              <TokenLogo symbol={soldToken.symbol} size={14} /> ADD{" "}
               {soldToken.symbol}
             </TransactionButton>
             <TransactionButton
@@ -155,36 +156,18 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
         <p className="flex items-center gap-2">
           1{" "}
           <span className="inline-flex items-center gap-1">
-            <img
-              src={soldToken.logo}
-              alt="logo"
-              height={18}
-              width={18}
-              className="rounded-full"
-            />
+            <TokenLogo symbol={soldToken.symbol} size={18} />
             <span>{soldToken.symbol}</span>
           </span>{" "}
           = {abbreviateAmount(collateralPerSoldToken, "", 2)}{" "}
           <span className="inline-flex items-center gap-1">
-            <img
-              src={collateralToken.logo}
-              alt="logo"
-              height={18}
-              width={18}
-              className="rounded-full"
-            />
+            <TokenLogo symbol={collateralToken.symbol} size={18} />
             <span>{collateralToken.symbol}</span>
           </span>
         </p>
         <p className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1">
-            <img
-              src={soldToken.logo}
-              alt="logo"
-              height={18}
-              width={18}
-              className="rounded-full"
-            />
+            <TokenLogo symbol={soldToken.symbol} size={18} />
             <span>{soldToken.symbol}</span>
           </span>{" "}
           sold:

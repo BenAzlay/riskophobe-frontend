@@ -35,6 +35,7 @@ import SignInButton from "@/components/SignInButton";
 import TransactionButton from "@/components/TransactionButton";
 import { base } from "viem/chains";
 import SwitchChainButton from "@/components/SwitchChainButton";
+import RangeSlider from "@/components/RangeSlider";
 
 const currentDate = new Date();
 const oneMonthFromNow: Date = new Date(
@@ -368,13 +369,13 @@ const Sell = () => {
           <label className="block text-sm font-medium">
             User Fee (Basis Points)
           </label>
-          <input
-            type="range"
+          <RangeSlider
             min={0}
-            max={1000}
+            max={10}
+            step={0.01}
             value={creatorFee}
-            onChange={(e) => setCreatorFee(Number(e.target.value))}
-            className="range"
+            onChange={(newValue) => setCreatorFee(newValue)}
+            displayTooltip={(value) => `${value}%`}
           />
           <div className="text-sm text-gray-500">{creatorFee / 100}%</div>
         </div>

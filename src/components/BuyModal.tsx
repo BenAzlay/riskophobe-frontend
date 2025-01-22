@@ -305,7 +305,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
         <RangeSlider
           value={Number(collateralIn)}
           onChange={handleCollateralInChange}
-          image={collateralToken.logo}
+          tokenSymbol={collateralToken.symbol}
           min={0}
           max={Number(userMaxCollateralIn)}
           step={step}

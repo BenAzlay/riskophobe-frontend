@@ -145,7 +145,7 @@ const ClaimModal: FC<ClaimModalProps> = ({ visible, onClose, creatorFee }) => {
         <RangeSlider
           value={Number(claimAmount)}
           onChange={handleClaimAmountChange}
-          image={token.logo}
+          tokenSymbol={token.symbol}
           min={0}
           max={Number(maxClaimAmount)}
           step={step}

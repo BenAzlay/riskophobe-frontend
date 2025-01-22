@@ -19,6 +19,7 @@ import SignInButton from "./SignInButton";
 import useStore from "@/store/useStore";
 import { base } from "viem/chains";
 import SwitchChainButton from "./SwitchChainButton";
+import TokenLogo from "./TokenLogo";
 
 interface RemoveModalProps {
   visible: boolean;
@@ -108,12 +109,11 @@ const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
       <div className="flex flex-col gap-4 items-center">
         <p className="flex items-center">
           You will receive
-          <img src={soldToken.logo} width={14} height={14} className="mx-1" />
+          <TokenLogo symbol={soldToken.symbol} size={14} className="mx-1" />
           {formattedSoldTokenAmount} {soldToken.symbol} and
-          <img
-            src={collateralToken.logo}
-            width={14}
-            height={14}
+          <TokenLogo
+            symbol={collateralToken.symbol}
+            size={14}
             className="mx-1"
           />
           {formattedCollateralBalance} {collateralToken.symbol}

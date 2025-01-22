@@ -250,7 +250,6 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
           tokenComponent={
             <TokenSymbolAndLogo
               symbol={soldToken.symbol}
-              logo={soldToken.logo}
             />
           }
         />

@@ -60,7 +60,6 @@ const TokensDropdown: FC<TokensDropdownProps> = ({
         <div className="flex items-center gap-2">
           <TokenSymbolAndLogo
             symbol={selectedToken?.symbol}
-            logo={selectedToken?.logo}
           />
         </div>
         <svg
@@ -96,7 +95,6 @@ const TokensDropdown: FC<TokensDropdownProps> = ({
             >
               <TokenSymbolAndLogo
                 symbol={token?.symbol}
-                logo={token?.logo}
               />
             </li>
           ))}

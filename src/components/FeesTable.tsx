@@ -34,7 +34,7 @@ const FeesTable: React.FC<Props> = ({ creatorFees, onSelectFee }) => {
     return (
       <tr key={feeId} className="hover:bg-base-200">
         <td>
-          <TokenSymbolAndLogo symbol={token.symbol} logo={token.logo} />
+          <TokenSymbolAndLogo symbol={token.symbol} />
         </td>
         <td>
           <Tooltip message={numberWithCommas(amount)}>
