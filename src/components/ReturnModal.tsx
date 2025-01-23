@@ -8,25 +8,22 @@ import {
   convertQuantityToWei,
 } from "@/utils/utilFunc";
 import { ethers } from "ethers";
-import {
-  useWaitForTransactionReceipt,
-  useWriteContract
-} from "wagmi";
 import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
 import CONSTANTS from "@/utils/constants";
 import { useAsyncEffect } from "@/utils/customHooks";
 import Decimal from "decimal.js";
 import RangeSlider from "./RangeSlider";
 import TransactionButton from "./TransactionButton";
-import { getAccount, simulateContract } from "wagmi/actions";
+import { getAccount } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
-import { erc20Abi } from "viem";
+import { erc20Abi, zeroAddress } from "viem";
 import { Deposit } from "@/utils/queries";
 import useStore from "@/store/useStore";
 import SwitchChainButton from "./SwitchChainButton";
 import { base } from "viem/chains";
 import { config } from "@/wagmiConfig";
+import useContractTransaction from "@/utils/useContractTransaction";
 
 interface ReturnModalProps {
   visible: boolean;
@@ -67,6 +64,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
   const [soldTokenIn, setSoldTokenIn] = useState<string>("0");
   const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
   const [soldTokenAllowance, setSoldTokenAllowance] = useState<string>("0");
+  const [txError, setTxError] = useState<string | null>(null);
 
   const formattedSoldTokenBalance = useMemo(
     () => convertQuantityFromWei(soldTokenBalance, soldToken.decimals),
@@ -161,69 +159,50 @@ const ReturnModal: FC<ReturnModalProps> = ({
     setSoldTokenIn(new Decimal(newValue).toString());
   };
 
+  // Reset txError after 10 seconds
+  useEffect(() => {
+    if (txError !== null) {
+      const timer = setTimeout(() => {
+        setTxError(null);
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [txError]);
+
   // Approve TX hooks
   const {
-    data: approveHash,
     isPending: approveIsPending,
-    writeContract: writeApprove,
-    error: approveError,
-  } = useWriteContract();
-  const { isLoading: approveIsConfirming, isSuccess: approveSuccess } =
-    useWaitForTransactionReceipt({
-      hash: approveHash,
-    });
-
-  // useEffect to handle approve transaction success
-  useEffect(() => {
-    const fetchAllowance = async () => {
-      try {
-        const _allowance = await getSoldTokenAllowance();
-        setSoldTokenAllowance(_allowance);
-      } catch (error) {
-        console.error("Error fetching allowance", error);
-      }
-    };
-
-    if (approveSuccess) {
-      console.log("Transaction approved successfully!");
-      fetchAllowance();
-    }
-  }, [approveSuccess]);
-
-  const handleApprove = async () => {
-    try {
-      const { request } = await simulateContract(config, {
-        abi: erc20Abi,
-        address: soldToken.address as `0x${string}`,
-        functionName: "approve",
-        args: [
-          CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-          BigInt(soldTokenInWei),
-        ],
-        connector: connector,
-      });
-      writeApprove(request);
-    } catch (e) {
-      console.error("handleApprove ERROR", e);
-    }
-  };
+    executeTransaction: executeApproveTransaction,
+  } = useContractTransaction({
+    abi: erc20Abi,
+    contractAddress: soldToken?.address ?? zeroAddress,
+    functionName: "approve",
+    args: [
+      CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+      BigInt(soldTokenInWei),
+    ],
+    onSuccess: async () => {
+      console.log("Approval successful");
+      setTxError(null);
+      const _allowance = await getSoldTokenAllowance();
+      setSoldTokenAllowance(_allowance);
+    },
+    onError: (errorMessage) => {
+      setTxError(errorMessage);
+    },
+  });
 
   // returnTokens TX hooks
   const {
-    data: returnTokensHash,
     isPending: returnTokensIsPending,
-    writeContract: writeReturnTokens,
-  } = useWriteContract();
-  const {
-    isLoading: returnTokensIsConfirming,
-    isSuccess: returnTokensSuccess,
-  } = useWaitForTransactionReceipt({
-    hash: returnTokensHash,
-  });
-
-  // useEffect to handle returnTokens transaction success
-  useEffect(() => {
-    const handleSuccess = async () => {
+    executeTransaction: executeReturnTokensTransaction,
+  } = useContractTransaction({
+    abi: RiskophobeProtocolAbi,
+    contractAddress: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+    functionName: "returnTokens",
+    args: [BigInt(offerId), BigInt(collateralOutWei)],
+    onSuccess: async () => {
       // Update offer collateralBalance and soldTokenAmount
       const newOffers = offers.map((offer) => {
         if (offer.id === offerId) {
@@ -244,30 +223,11 @@ const ReturnModal: FC<ReturnModalProps> = ({
       // Update sold token balance and allowance
       const payload = await soldTokenBalanceAndAllowanceGetter();
       soldTokenBalanceAndAllowanceSetter(payload);
-    };
-    if (returnTokensSuccess) {
-      handleSuccess();
-    }
-  }, [returnTokensSuccess]);
-
-  const handleReturnTokens = async () => {
-    try {
-      console.log(`handleReturnTokens collateralOutWei:`, collateralOutWei);
-      console.log(`handleReturnTokens collateralBalance:`, collateralBalance);
-
-      const { request } = await simulateContract(config, {
-        abi: RiskophobeProtocolAbi,
-        address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-        functionName: "returnTokens",
-        args: [BigInt(offerId), BigInt(collateralOutWei)],
-        connector: connector,
-      });
-      console.log(`handleReturnTokens request:`, request);
-      writeReturnTokens(request);
-    } catch (e) {
-      console.error("handleReturnTokens ERROR", e);
-    }
-  };
+    },
+    onError: (errorMessage) => {
+      setTxError(errorMessage);
+    },
+  });
 
   const transactionButton = () => {
     if (!connectedAddress) return <SignInButton />;
@@ -277,25 +237,20 @@ const ReturnModal: FC<ReturnModalProps> = ({
         <TransactionButton
           disabled={
             approveIsPending ||
-            approveIsConfirming ||
             !!hasEnoughSoldTokenAllowance ||
             new Decimal(soldTokenInWei).lte(0)
           }
-          loading={approveIsPending || approveIsConfirming}
-          onClickAction={handleApprove}
+          loading={approveIsPending}
+          onClickAction={executeApproveTransaction}
         >
           APPROVE {soldToken?.symbol}
         </TransactionButton>
       );
     return (
       <TransactionButton
-        disabled={
-          new Decimal(soldTokenInWei).lte(0) ||
-          returnTokensIsConfirming ||
-          returnTokensIsPending
-        }
-        loading={returnTokensIsConfirming || returnTokensIsPending}
-        onClickAction={handleReturnTokens}
+        disabled={new Decimal(soldTokenInWei).lte(0) || returnTokensIsPending}
+        loading={returnTokensIsPending}
+        onClickAction={executeReturnTokensTransaction}
       >
         RETURN {soldToken.symbol}
       </TransactionButton>
