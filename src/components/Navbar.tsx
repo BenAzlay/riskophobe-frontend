@@ -2,16 +2,18 @@
 
 import useStore from "@/store/useStore";
 import React, { Fragment, useState } from "react";
-import { useAccount, useDisconnect } from "wagmi";
+import { useDisconnect } from "wagmi";
 import { usePathname } from "next/navigation"; // For detecting active route
 import Link from "next/link"; // For client-side navigation
 import Modal from "./Modal";
 import { addressShorten } from "@/utils/utilFunc";
+import { getAccount } from "wagmi/actions";
+import { config } from "@/wagmiConfig";
 
 const Navbar: React.FC = () => {
   const { setWalletDialogOpen } = useStore();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
-  const { address: connectedAddress } = useAccount();
+  const { address: connectedAddress } = getAccount(config);
   const { disconnectAsync } = useDisconnect();
   const pathname = usePathname(); // Detect the current route
 

@@ -7,8 +7,6 @@ import {
   calculateExchangeRate,
   convertQuantityFromWei,
   convertQuantityToWei,
-  getFormattedDate,
-  getFormattedDateFromSecondsTimestamp,
   getTimestampSecondsFromDate,
   numberWithCommas,
 } from "@/utils/utilFunc";
@@ -17,16 +15,12 @@ import ERC20Token from "../types/ERC20Token";
 import TokensDropdown from "@/components/TokensDropdown";
 import TokenAmountField from "@/components/TokenAmountField";
 import Decimal from "decimal.js";
-import DateField from "@/components/DateField";
-import { simulateContract } from "wagmi/actions";
+import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import { erc20Abi, zeroAddress } from "viem";
-import { getConfig } from "@/wagmi";
 import {
-  useAccount,
-  useConnect,
   useWaitForTransactionReceipt,
-  useWriteContract,
+  useWriteContract
 } from "wagmi";
 import {
   getTokenAllowance,
@@ -43,6 +37,7 @@ import RangeSlider from "@/components/RangeSlider";
 import dynamic from "next/dynamic";
 import DateRangePicker from "@/components/DateRangePicker";
 import Tooltip from "@/components/Tooltip";
+import { config } from "@/wagmiConfig";
 
 const ClientOnlyDate = dynamic(() => import("@/components/ClientOnlyDate"), {
   ssr: false,
@@ -54,13 +49,18 @@ const oneMonthFromNow: Date = new Date(
 );
 
 const Sell = () => {
-  const config = getConfig();
+  const {
+    connector,
+    address: connectedAddress,
+    chainId: connectedChainId,
+  } = getAccount(config);
 
-  const { connectors } = useConnect();
   const {
     data: createOfferHash,
     isPending: createOfferIsPending,
     writeContract: writeCreateOffer,
+    error: createOfferError,
+    failureReason: createOfferFailureReason,
   } = useWriteContract();
   const { isLoading: createOfferIsConfirming, isSuccess: createOfferSuccess } =
     useWaitForTransactionReceipt({
@@ -77,7 +77,10 @@ const Sell = () => {
       hash: approveHash,
     });
 
-  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
+  useEffect(
+    () => console.log(createOfferFailureReason),
+    [createOfferFailureReason]
+  );
 
   const currentTs = useCurrentTimestamp();
 
@@ -267,7 +270,7 @@ const Sell = () => {
           CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
           BigInt(soldTokenAmountWei),
         ],
-        connector: connectors[0],
+        connector: connector,
       });
       console.log(`handleCreateOffer request:`, request);
       writeApprove(request);
@@ -297,9 +300,15 @@ const Sell = () => {
 
   const handleCreateOffer = async () => {
     try {
-      const collateralTokenAddress: string =
-        collateralToken?.address ?? zeroAddress;
-      const soldTokenAddress: string = soldToken?.address ?? zeroAddress;
+      if (
+        !ethers.isAddress(soldToken?.address) ||
+        !ethers.isAddress(collateralToken?.address)
+      ) {
+        throw new Error("Invalid token addresses");
+      }
+
+      const collateralTokenAddress = collateralToken.address as `0x${string}`;
+      const soldTokenAddress = soldToken.address as `0x${string}`;
 
       let startDateTs: number = getTimestampSecondsFromDate(startDate);
       // Make sure start date is at least 5 minutes in the future to account for tx time
@@ -308,20 +317,23 @@ const Sell = () => {
 
       const creatorFeeBp = creatorFee * 100;
 
+      const RiskophobeProtocolAddress =
+        CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`;
+
       const { request } = await simulateContract(config, {
         abi: RiskophobeProtocolAbi,
-        address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+        address: RiskophobeProtocolAddress,
         functionName: "createOffer",
         args: [
-          collateralTokenAddress as `0x${string}`,
-          soldTokenAddress as `0x${string}`,
+          collateralTokenAddress,
+          soldTokenAddress,
           BigInt(soldTokenAmountWei),
           BigInt(exchangeRate),
           creatorFeeBp,
           startDateTs,
           endDateTs,
         ],
-        connector: connectors[0],
+        connector: connector,
       });
       console.log(`handleCreateOffer request:`, request);
       writeCreateOffer(request);
@@ -472,6 +484,11 @@ const Sell = () => {
         {formErrors.length > 0 ? errorsBox() : offerSummary()}
         {/* Submit */}
         {transactionButton()}
+        {approveError || createOfferError ? (
+          <div role="alert" className="alert alert-error">
+            {/* {createOfferFailureReason} */}
+          </div>
+        ) : null}
       </form>
     </div>
   );

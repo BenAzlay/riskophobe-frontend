@@ -9,8 +9,13 @@ import Navbar from "@/components/Navbar";
 import Head from "next/head";
 import ConnectWalletModal from "@/components/ConnectWalletModal";
 import BottomNav from "@/components/BottomNav";
+import { WagmiProvider } from "wagmi";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { config } from "@/wagmiConfig";
 
 const inter = Inter({ subsets: ["latin"] });
+
+const queryClient = new QueryClient();
 
 export default function RootLayout(props: { children: ReactNode }) {
   return (
@@ -22,14 +27,14 @@ export default function RootLayout(props: { children: ReactNode }) {
       </Head>
       <html lang="en" data-theme="riskophobe">
         <body className={inter.className}>
-          <Providers>
-            <Navbar />
-            <div className="mb-16 sm:mb-0">
-            {props.children}
-            </div>
-            <BottomNav />
-            <ConnectWalletModal />
-          </Providers>
+          <WagmiProvider config={config}>
+            <QueryClientProvider client={queryClient}>
+              <Navbar />
+              <div className="mb-16 sm:mb-0">{props.children}</div>
+              <BottomNav />
+              <ConnectWalletModal />
+            </QueryClientProvider>
+          </WagmiProvider>
         </body>
       </html>
     </Fragment>

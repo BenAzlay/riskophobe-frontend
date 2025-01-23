@@ -3,10 +3,10 @@ import { getConfig } from "@/wagmi";
 import { ethers } from "ethers";
 import { erc20Abi, zeroAddress } from "viem";
 import { readContract, readContracts } from "wagmi/actions";
-import { Token } from "./queries";
 import { abi as priceFeedAbi } from "@/abi/aggregatorV3InterfaceAbi";
 import CONSTANTS from "./constants";
 import { compareEthereumAddresses } from "./utilFunc";
+import { config } from "@/wagmiConfig";
 
 const calculatePriceFromFeedResult = (
   priceFeedResult: number | null,
@@ -66,8 +66,6 @@ export const getTokenDetails = async (
       ];
     });
 
-    const config = getConfig();
-
     const rawResults = await readContracts(config, { contracts });
 
     const results = rawResults.map(({ result }) => result);
@@ -114,8 +112,6 @@ export const getTokenBalance = async (
       throw new Error("Invalid ERC20 token address");
     }
 
-    const config = getConfig();
-
     const result = await readContract(config, {
       address: tokenAddress as `0x${string}`,
       abi: erc20Abi,
@@ -148,8 +144,6 @@ export const getTokenAllowance = async (
     if (!ethers.isAddress(contractAddress)) {
       throw new Error("Invalid contract address");
     }
-
-    const config = getConfig();
 
     const result = await readContract(config, {
       address: tokenAddress as `0x${string}`,

@@ -3,8 +3,6 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
-import TokenAmountField from "./TokenAmountField";
-import TokenSymbolAndLogo from "./TokenSymbolAndLogo";
 import {
   calculateCollateralForSoldToken,
   calculateSoldTokenForCollateral,
@@ -13,11 +11,8 @@ import {
 } from "@/utils/utilFunc";
 import { ethers } from "ethers";
 import {
-  useAccount,
-  useConnect,
-  useSwitchChain,
   useWaitForTransactionReceipt,
-  useWriteContract,
+  useWriteContract
 } from "wagmi";
 import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
 import CONSTANTS from "@/utils/constants";
@@ -25,14 +20,14 @@ import { useAsyncEffect } from "@/utils/customHooks";
 import Decimal from "decimal.js";
 import RangeSlider from "./RangeSlider";
 import TransactionButton from "./TransactionButton";
-import { simulateContract } from "wagmi/actions";
-import { getConfig } from "@/wagmi";
+import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
-import { erc20Abi, zeroAddress } from "viem";
+import { erc20Abi } from "viem";
 import useStore from "@/store/useStore";
 import { base } from "viem/chains";
 import SwitchChainButton from "./SwitchChainButton";
+import { config } from "@/wagmiConfig";
 
 interface BuyModalProps {
   visible: boolean;
@@ -53,8 +48,12 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
     creator,
   } = offer;
 
-  const config = getConfig();
-  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
+const {
+    connector,
+    address: connectedAddress,
+    chainId: connectedChainId,
+  } = getAccount(config);
+  
   const { offers, setOffers } = useStore();
 
   const [collateralIn, setCollateralIn] = useState<string>("0");
@@ -195,7 +194,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
           CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
           BigInt(collateralInWei),
         ],
-        connector: connectors[0],
+        connector: connector,
       });
       writeApprove(request);
     } catch (e) {
@@ -204,7 +203,6 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
   };
 
   // buyTokens TX hooks
-  const { connectors } = useConnect();
   const {
     data: buyTokensHash,
     isPending: buyTokensIsPending,
@@ -252,7 +250,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
         functionName: "buyTokens",
         args: [BigInt(offerId), BigInt(collateralInWei), BigInt(0)],
-        connector: connectors[0],
+        connector: connector,
       });
       console.log(`handleBuyTokens request:`, request);
       writeBuyTokens(request);

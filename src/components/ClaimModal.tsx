@@ -7,17 +7,14 @@ import {
   numberWithCommas,
 } from "@/utils/utilFunc";
 import {
-  useAccount,
-  useConnect,
   useWaitForTransactionReceipt,
-  useWriteContract,
+  useWriteContract
 } from "wagmi";
 import CONSTANTS from "@/utils/constants";
 import Decimal from "decimal.js";
 import RangeSlider from "./RangeSlider";
 import TransactionButton from "./TransactionButton";
-import { simulateContract } from "wagmi/actions";
-import { getConfig } from "@/wagmi";
+import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import useStore from "@/store/useStore";
@@ -25,6 +22,7 @@ import SwitchChainButton from "./SwitchChainButton";
 import { base } from "viem/chains";
 import CreatorFee from "@/app/types/CreatorFee";
 import Tooltip from "./Tooltip";
+import { config } from "@/wagmiConfig";
 
 interface ClaimModalProps {
   visible: boolean;
@@ -35,8 +33,12 @@ interface ClaimModalProps {
 const ClaimModal: FC<ClaimModalProps> = ({ visible, onClose, creatorFee }) => {
   const { id: feeId, creator, token, amount: maxClaimAmountWei } = creatorFee;
 
-  const config = getConfig();
-  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
+const {
+    connector,
+    address: connectedAddress,
+    chainId: connectedChainId,
+  } = getAccount(config);
+
   const { creatorFees, setCreatorFees } = useStore();
 
   const maxClaimAmount = useMemo(
@@ -64,7 +66,6 @@ const ClaimModal: FC<ClaimModalProps> = ({ visible, onClose, creatorFee }) => {
   };
 
   // claimFees TX hooks
-  const { connectors } = useConnect();
   const {
     data: claimFeesHash,
     isPending: claimFeesIsPending,
@@ -106,7 +107,7 @@ const ClaimModal: FC<ClaimModalProps> = ({ visible, onClose, creatorFee }) => {
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
         functionName: "claimFees",
         args: [token.address as `0x${string}`, BigInt(claimAmountWei)],
-        connector: connectors[0],
+        connector: connector,
       });
       writeClaimFees(request);
     } catch (e) {

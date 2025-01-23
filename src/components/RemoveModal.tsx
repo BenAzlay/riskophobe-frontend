@@ -5,21 +5,19 @@ import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
 import { convertQuantityFromWei } from "@/utils/utilFunc";
 import {
-  useAccount,
-  useConnect,
   useWaitForTransactionReceipt,
-  useWriteContract,
+  useWriteContract
 } from "wagmi";
 import CONSTANTS from "@/utils/constants";
 import TransactionButton from "./TransactionButton";
-import { simulateContract } from "wagmi/actions";
-import { getConfig } from "@/wagmi";
+import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import useStore from "@/store/useStore";
 import { base } from "viem/chains";
 import SwitchChainButton from "./SwitchChainButton";
 import TokenLogo from "./TokenLogo";
+import { config } from "@/wagmiConfig";
 
 interface RemoveModalProps {
   visible: boolean;
@@ -41,8 +39,12 @@ const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
     collateralBalance,
   } = offer;
 
-  const config = getConfig();
-  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
+  const {
+    connector,
+    address: connectedAddress,
+    chainId: connectedChainId,
+  } = getAccount(config);
+
   const { offers, setOffers } = useStore();
 
   const formattedSoldTokenAmount = useMemo(
@@ -55,7 +57,6 @@ const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
   );
 
   // removeOffer tx hooks
-  const { connectors } = useConnect();
   const {
     data: removeOfferHash,
     isPending: removeOfferIsPending,
@@ -82,7 +83,7 @@ const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
         functionName: "removeOffer",
         args: [BigInt(offerId)],
-        connector: connectors[0],
+        connector: connector,
       });
       writeRemoveOffer(request);
     } catch (e) {

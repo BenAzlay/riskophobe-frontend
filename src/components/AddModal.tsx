@@ -5,15 +5,12 @@ import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
 import { convertQuantityFromWei, convertQuantityToWei } from "@/utils/utilFunc";
 import {
-  useAccount,
-  useConnect,
   useWaitForTransactionReceipt,
-  useWriteContract,
+  useWriteContract
 } from "wagmi";
 import CONSTANTS from "@/utils/constants";
 import TransactionButton from "./TransactionButton";
-import { simulateContract } from "wagmi/actions";
-import { getConfig } from "@/wagmi";
+import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import useStore from "@/store/useStore";
@@ -26,6 +23,7 @@ import { ethers } from "ethers";
 import { useAsyncEffect } from "@/utils/customHooks";
 import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
 import { erc20Abi } from "viem";
+import { config } from "@/wagmiConfig";
 
 interface AddModalProps {
   visible: boolean;
@@ -47,8 +45,12 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
     collateralBalance,
   } = offer;
 
-  const config = getConfig();
-  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
+  const {
+    connector,
+    address: connectedAddress,
+    chainId: connectedChainId,
+  } = getAccount(config);
+
   const { offers, setOffers } = useStore();
 
   const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
@@ -142,7 +144,7 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
           CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
           BigInt(amountToAddWei),
         ],
-        connector: connectors[0],
+        connector: connector,
       });
       console.log(`handleApprove request:`, request);
       writeApprove(request);
@@ -152,7 +154,6 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
   };
 
   // addSoldTokens tx hooks
-  const { connectors } = useConnect();
   const {
     data: addSoldTokensHash,
     isPending: addSoldTokensIsPending,
@@ -198,7 +199,7 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
         functionName: "addSoldTokens",
         args: [BigInt(offerId), BigInt(amountToAddWei)],
-        connector: connectors[0],
+        connector: connector,
       });
       writeAddSoldTokens(request);
     } catch (e) {
@@ -247,11 +248,7 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
           onChangeAmount={(amount) => setAmountToAdd(amount)}
           showTokenBalance={true}
           tokenBalance={formattedSoldTokenBalance}
-          tokenComponent={
-            <TokenSymbolAndLogo
-              symbol={soldToken.symbol}
-            />
-          }
+          tokenComponent={<TokenSymbolAndLogo symbol={soldToken.symbol} />}
         />
         {transactionButton()}
       </div>

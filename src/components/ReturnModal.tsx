@@ -9,10 +9,8 @@ import {
 } from "@/utils/utilFunc";
 import { ethers } from "ethers";
 import {
-  useAccount,
-  useConnect,
   useWaitForTransactionReceipt,
-  useWriteContract,
+  useWriteContract
 } from "wagmi";
 import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
 import CONSTANTS from "@/utils/constants";
@@ -20,8 +18,7 @@ import { useAsyncEffect } from "@/utils/customHooks";
 import Decimal from "decimal.js";
 import RangeSlider from "./RangeSlider";
 import TransactionButton from "./TransactionButton";
-import { simulateContract } from "wagmi/actions";
-import { getConfig } from "@/wagmi";
+import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import { erc20Abi } from "viem";
@@ -29,6 +26,7 @@ import { Deposit } from "@/utils/queries";
 import useStore from "@/store/useStore";
 import SwitchChainButton from "./SwitchChainButton";
 import { base } from "viem/chains";
+import { config } from "@/wagmiConfig";
 
 interface ReturnModalProps {
   visible: boolean;
@@ -56,12 +54,14 @@ const ReturnModal: FC<ReturnModalProps> = ({
     collateralBalance,
   } = offer;
 
-  const {
-    netCollateralAmount: collateralDepositedWei,
-  } = deposit;
+  const { netCollateralAmount: collateralDepositedWei } = deposit;
 
-  const config = getConfig();
-  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
+  const {
+    connector,
+    address: connectedAddress,
+    chainId: connectedChainId,
+  } = getAccount(config);
+
   const { offers, setOffers } = useStore();
 
   const [soldTokenIn, setSoldTokenIn] = useState<string>("0");
@@ -72,7 +72,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
     () => convertQuantityFromWei(soldTokenBalance, soldToken.decimals),
     [soldTokenBalance, soldToken.decimals]
   );
-  
+
   const soldTokenBoughtWei = useMemo(
     () => calculateSoldTokenForCollateral(exchangeRate, collateralDepositedWei),
     [exchangeRate, collateralDepositedWei]
@@ -147,7 +147,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
     string,
     string,
   ]): void => {
-    console.log(`newAllowance:`, newAllowance)
+    console.log(`newAllowance:`, newAllowance);
     setSoldTokenBalance(newBalance);
     setSoldTokenAllowance(newAllowance);
   };
@@ -200,7 +200,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
           CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
           BigInt(soldTokenInWei),
         ],
-        connector: connectors[0],
+        connector: connector,
       });
       writeApprove(request);
     } catch (e) {
@@ -209,7 +209,6 @@ const ReturnModal: FC<ReturnModalProps> = ({
   };
 
   // returnTokens TX hooks
-  const { connectors } = useConnect();
   const {
     data: returnTokensHash,
     isPending: returnTokensIsPending,
@@ -229,9 +228,9 @@ const ReturnModal: FC<ReturnModalProps> = ({
       const newOffers = offers.map((offer) => {
         if (offer.id === offerId) {
           const newCollateralBalance =
-          offer.collateralBalance - Number(collateralOutWei);
+            offer.collateralBalance - Number(collateralOutWei);
           const newSoldTokenAmount =
-          offer.soldTokenAmount + Number(soldTokenInWei);
+            offer.soldTokenAmount + Number(soldTokenInWei);
           return {
             ...offer,
             collateralBalance: newCollateralBalance,
@@ -253,15 +252,15 @@ const ReturnModal: FC<ReturnModalProps> = ({
 
   const handleReturnTokens = async () => {
     try {
-      console.log(`handleReturnTokens collateralOutWei:`, collateralOutWei)
-      console.log(`handleReturnTokens collateralBalance:`, collateralBalance)
+      console.log(`handleReturnTokens collateralOutWei:`, collateralOutWei);
+      console.log(`handleReturnTokens collateralBalance:`, collateralBalance);
 
       const { request } = await simulateContract(config, {
         abi: RiskophobeProtocolAbi,
         address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
         functionName: "returnTokens",
         args: [BigInt(offerId), BigInt(collateralOutWei)],
-        connector: connectors[0],
+        connector: connector,
       });
       console.log(`handleReturnTokens request:`, request);
       writeReturnTokens(request);

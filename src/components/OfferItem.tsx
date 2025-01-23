@@ -7,12 +7,10 @@ import {
   compareEthereumAddresses,
   convertQuantityFromWei,
   convertQuantityToWei,
-  formatDuration
+  formatDuration,
 } from "@/utils/utilFunc";
-import { getConfig } from "@/wagmi";
 import Decimal from "decimal.js";
 import { FC, Fragment, useMemo, useState } from "react";
-import { useAccount } from "wagmi";
 import useStore from "@/store/useStore";
 import TransactionButton from "./TransactionButton";
 import BuyModal from "./BuyModal";
@@ -23,14 +21,15 @@ import AddModal from "./AddModal";
 import RemoveModal from "./RemoveModal";
 import TokenLogo from "./TokenLogo";
 import InfoModal from "./InfoModal";
+import { config } from "@/wagmiConfig";
+import { getAccount } from "wagmi/actions";
 
 interface OfferItemProps {
   offer: Offer;
 }
 
 const OfferItem: FC<OfferItemProps> = ({ offer }) => {
-  const config = getConfig();
-  const { offers, setOffers, deposits } = useStore();
+  const { deposits } = useStore();
 
   const [buyModalOpen, setBuyModalOpen] = useState(false);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
@@ -38,7 +37,8 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [perSoldTokenMode, setPerSoldTokenMode] = useState(true);
 
-  const { address: connectedAddress } = useAccount();
+  const { address: connectedAddress } = getAccount(config);
+
   const currentTs = useCurrentTimestamp();
 
   const {
@@ -67,7 +67,10 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
   const soldTokenPerCollateral = useMemo(
     () =>
       convertQuantityFromWei(
-        calculateSoldTokenForCollateral(exchangeRate, convertQuantityToWei(1, collateralToken.decimals)),
+        calculateSoldTokenForCollateral(
+          exchangeRate,
+          convertQuantityToWei(1, collateralToken.decimals)
+        ),
         soldToken.decimals
       ),
     [exchangeRate, soldToken.decimals, collateralToken.decimals]

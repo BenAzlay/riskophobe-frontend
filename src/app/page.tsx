@@ -7,7 +7,6 @@ import {
   useAsyncEffect,
   useVisibilityIntervalEffect,
 } from "@/utils/customHooks";
-import { useAccount } from "wagmi";
 import { Deposit, Offer as SubgraphOffer } from "@/utils/queries";
 import { ethers } from "ethers";
 import ERC20Token from "./types/ERC20Token";
@@ -16,10 +15,13 @@ import { abbreviateAmount, compareEthereumAddresses } from "@/utils/utilFunc";
 import TokenSymbolAndLogo from "@/components/TokenSymbolAndLogo";
 import { getTokenDetails } from "@/utils/tokenMethods";
 import Link from "next/link";
+import { config } from "@/wagmiConfig";
+import { getAccount } from "wagmi/actions";
 
 function App() {
   const { setOffers, offers, setDeposits, deposits } = useStore();
-  const { address: connectedAddress } = useAccount() as { address: string };
+  const { address: connectedAddress, chainId: connectedChainId } =
+    getAccount(config);
 
   // Fetch offers every 60s from subgraph
   const fetchOffers = async () => {

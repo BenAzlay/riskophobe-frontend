@@ -6,16 +6,16 @@ import { CreatorFee as SubgraphCreatorFee } from "@/utils/queries";
 import CreatorFee from "../types/CreatorFee";
 import { getTokenDetails } from "@/utils/tokenMethods";
 import { ethers } from "ethers";
-import { useAccount } from "wagmi";
 import FeesTable from "@/components/FeesTable";
 import { Fragment, useState } from "react";
 import ClaimModal from "@/components/ClaimModal";
 import { compareEthereumAddresses } from "@/utils/utilFunc";
+import { getAccount } from "wagmi/actions";
+import { config } from "@/wagmiConfig";
 
 const Claim = () => {
   const { setCreatorFees, creatorFees } = useStore();
-  const { address: connectedAddress } = useAccount();
-
+  const { address: connectedAddress } = getAccount(config);
   const [selectedFee, setSelectedFee] = useState<CreatorFee | null>(null);
 
   const creatorFeesGetter = async (): Promise<CreatorFee[]> => {
