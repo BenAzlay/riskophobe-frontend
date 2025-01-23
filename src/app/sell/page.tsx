@@ -15,10 +15,9 @@ import ERC20Token from "../types/ERC20Token";
 import TokensDropdown from "@/components/TokensDropdown";
 import TokenAmountField from "@/components/TokenAmountField";
 import Decimal from "decimal.js";
-import { getAccount, simulateContract } from "wagmi/actions";
+import { getAccount } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import { erc20Abi, zeroAddress } from "viem";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import {
   getTokenAllowance,
   getTokenBalance,
@@ -67,6 +66,7 @@ const Sell = () => {
   const [creatorFee, setCreatorFee] = useState<number>(2.5);
   const [startDate, setStartDate] = useState<Date>(currentDate);
   const [endDate, setEndDate] = useState<Date>(oneMonthFromNow);
+  const [txError, setTxError] = useState<string | null>(null);
 
   const soldTokenAmountWei = useMemo(
     () => convertQuantityToWei(soldTokenAmount, soldToken?.decimals ?? 18),
@@ -151,8 +151,6 @@ const Sell = () => {
   // APROVE TX HOOK
   const {
     isPending: approveIsPending,
-    isSuccess: approveSuccess,
-    error: approveError,
     executeTransaction: executeApproveTransaction,
   } = useContractTransaction({
     abi: erc20Abi,
@@ -164,8 +162,12 @@ const Sell = () => {
     ],
     onSuccess: async () => {
       console.log("Approval successful");
+      setTxError(null);
       const _allowance = await getSoldTokenAllowance();
       setSoldTokenAllowance(_allowance);
+    },
+    onError: (errorMessage) => {
+      setTxError(errorMessage);
     },
   });
 
@@ -195,8 +197,6 @@ const Sell = () => {
   };
   const {
     isPending: createOfferIsPending,
-    isSuccess: createOfferSuccess,
-    error: createOfferError,
     executeTransaction: executeCreateOfferTransaction,
   } = useContractTransaction({
     abi: RiskophobeProtocolAbi,
@@ -205,6 +205,7 @@ const Sell = () => {
     args: getCreateOfferArgs(),
     onSuccess: async () => {
       console.log("Create offer successful");
+      setTxError(null);
       try {
         setSoldTokenAmount("");
         setCollateralAmount("");
@@ -213,6 +214,9 @@ const Sell = () => {
       } catch (error) {
         console.error("Error fetching balance", error);
       }
+    },
+    onError: (errorMessage) => {
+      setTxError(errorMessage);
     },
   });
 
@@ -414,9 +418,9 @@ const Sell = () => {
         {formErrors.length > 0 ? errorsBox() : offerSummary()}
         {/* Submit */}
         {transactionButton()}
-        {approveError || createOfferError ? (
+        {!!txError ? (
           <div role="alert" className="alert alert-error">
-            {createOfferError?.split("\n")[0] ?? "Transaction failed"}
+            {txError}
           </div>
         ) : null}
       </form>

@@ -11,12 +11,12 @@ interface useContractTransactionProps {
   functionName: string;
   args: any[];
   onSuccess?: () => Promise<void> | void;
+  onError?: (errorMessage: string) => Promise<void> | void;
 }
 
 interface useContractTransactionReturn {
   isPending: boolean;
   isSuccess: boolean;
-  error: string | null;
   executeTransaction: () => Promise<void>;
 }
 
@@ -26,28 +26,23 @@ const useContractTransaction = ({
   functionName,
   args,
   onSuccess,
+  onError,
 }: useContractTransactionProps): useContractTransactionReturn => {
   const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const { connector } = getAccount(config); // Get the connector directly inside the hook
 
-  const { writeContract, data: transactionHash, isError } = useWriteContract();
-  const {
-    isLoading,
-    isSuccess,
-  } = useWaitForTransactionReceipt({
+  const { writeContract, data: transactionHash, error } = useWriteContract();
+  const { isLoading, isSuccess } = useWaitForTransactionReceipt({
     hash: transactionHash,
   });
 
   const executeTransaction = useCallback(async () => {
     if (!connector) {
-      setError("No connector found. Please connect a wallet.");
-      return;
+      throw new Error("No connector found.");
     }
 
     setIsPending(true);
-    setError(null);
 
     try {
       // Simulate transaction
@@ -65,7 +60,6 @@ const useContractTransaction = ({
       writeContract(request);
     } catch (e: any) {
       console.error("Transaction simulation or execution failed:", e);
-      setError(e.message || "Simulation failed");
       setIsPending(false);
     }
   }, [abi, contractAddress, functionName, args, connector, writeContract]);
@@ -80,15 +74,15 @@ const useContractTransaction = ({
 
   // Handle error
   useEffect(() => {
-    if (isError) {
-      setIsPending(false)
-    };
-  }, [isError]);
+    if (!!error) {
+      onError?.(error?.message.split(`\n`)[0] ?? "Transaction failed");
+      setIsPending(false);
+    }
+  }, [error]);
 
   return {
     isPending: isPending || isLoading,
     isSuccess,
-    error,
     executeTransaction,
   };
 };
