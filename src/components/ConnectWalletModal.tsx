@@ -35,11 +35,18 @@ const ConnectWalletModal: FC = () => {
         {connectors.map((connector) => (
           <li key={connector.id} className="mb-2">
             <button
-              className="btn btn-secondary w-full"
+              className="btn btn-secondary btn-outline w-full text-start"
               onClick={() => handleConnect(connector)}
             >
+              {!!connector?.icon ? (
+                <img
+                  src={connector.icon}
+                  width={18}
+                  height={18}
+                  className="rounded-md"
+                />
+              ) : null}
               {connector.name}
-              {isPending && "..."}
             </button>
           </li>
         ))}

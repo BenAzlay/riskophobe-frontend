@@ -1,13 +1,10 @@
 import { http, cookieStorage, createConfig, createStorage } from "wagmi";
 import { base } from "wagmi/chains";
-import { injected } from "wagmi/connectors";
 
 export function getConfig() {
   return createConfig({
     chains: [base],
-    connectors: [
-      injected(),
-    ],
+    connectors: [],
     storage: createStorage({
       storage: cookieStorage,
     }),
