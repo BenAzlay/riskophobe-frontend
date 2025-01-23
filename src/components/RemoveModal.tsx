@@ -1,16 +1,12 @@
 "use client";
 
-import { FC, useEffect, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
 import { convertQuantityFromWei } from "@/utils/utilFunc";
-import {
-  useWaitForTransactionReceipt,
-  useWriteContract
-} from "wagmi";
 import CONSTANTS from "@/utils/constants";
 import TransactionButton from "./TransactionButton";
-import { getAccount, simulateContract } from "wagmi/actions";
+import { getAccount } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import useStore from "@/store/useStore";
@@ -18,6 +14,7 @@ import { base } from "viem/chains";
 import SwitchChainButton from "./SwitchChainButton";
 import TokenLogo from "./TokenLogo";
 import { config } from "@/wagmiConfig";
+import useContractTransaction from "@/utils/useContractTransaction";
 
 interface RemoveModalProps {
   visible: boolean;
@@ -30,22 +27,27 @@ const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
     id: offerId,
     soldToken,
     collateralToken,
-    exchangeRate,
-    creatorFeeBp,
-    startTime,
-    endTime,
     soldTokenAmount,
-    creator,
     collateralBalance,
   } = offer;
 
-  const {
-    connector,
-    address: connectedAddress,
-    chainId: connectedChainId,
-  } = getAccount(config);
+  const { address: connectedAddress, chainId: connectedChainId } =
+    getAccount(config);
 
   const { offers, setOffers } = useStore();
+
+  const [txError, setTxError] = useState<string | null>(null);
+
+  // Reset txError after 10 seconds
+  useEffect(() => {
+    if (txError !== null) {
+      const timer = setTimeout(() => {
+        setTxError(null);
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [txError]);
 
   const formattedSoldTokenAmount = useMemo(
     () => convertQuantityFromWei(soldTokenAmount, soldToken.decimals),
@@ -56,49 +58,34 @@ const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
     [collateralBalance, collateralToken.decimals]
   );
 
-  // removeOffer tx hooks
+  // removeOffer tx hook
   const {
-    data: removeOfferHash,
     isPending: removeOfferIsPending,
-    writeContract: writeRemoveOffer,
-  } = useWriteContract();
-  const { isLoading: removeOfferIsConfirming, isSuccess: removeOfferSuccess } =
-    useWaitForTransactionReceipt({
-      hash: removeOfferHash,
-    });
-
-  // useEffect to handle removeOffer transaction success
-  useEffect(() => {
-    if (removeOfferSuccess) {
+    executeTransaction: executeRemoveOfferTransaction,
+  } = useContractTransaction({
+    abi: RiskophobeProtocolAbi,
+    contractAddress: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+    functionName: "removeOffer",
+    args: [BigInt(offerId)],
+    onSuccess: () => {
       // Remove the removed offer from offers
       const newOffers = offers.filter((offer) => offer.id !== offerId);
       setOffers(newOffers);
-    }
-  }, [removeOfferSuccess]);
-
-  const handleRemoveOffer = async () => {
-    try {
-      const { request } = await simulateContract(config, {
-        abi: RiskophobeProtocolAbi,
-        address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-        functionName: "removeOffer",
-        args: [BigInt(offerId)],
-        connector: connector,
-      });
-      writeRemoveOffer(request);
-    } catch (e) {
-      console.error("handleRemoveOffer ERROR", e);
-    }
-  };
+    },
+    onError: (errorMessage) => {
+      setTxError(errorMessage);
+    },
+  });
 
   const transactionButton = () => {
     if (!connectedAddress) return <SignInButton />;
     if (connectedChainId !== base.id) return <SwitchChainButton />;
     return (
       <TransactionButton
-        onClickAction={handleRemoveOffer}
-        disabled={removeOfferIsPending || removeOfferIsConfirming}
-        loading={removeOfferIsPending || removeOfferIsConfirming}
+        onClickAction={executeRemoveOfferTransaction}
+        disabled={removeOfferIsPending}
+        loading={removeOfferIsPending}
+        errorMessage={txError}
       >
         REMOVE OFFER
       </TransactionButton>

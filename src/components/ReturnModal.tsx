@@ -242,6 +242,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
           }
           loading={approveIsPending}
           onClickAction={executeApproveTransaction}
+          errorMessage={txError}
         >
           APPROVE {soldToken?.symbol}
         </TransactionButton>
@@ -251,6 +252,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
         disabled={new Decimal(soldTokenInWei).lte(0) || returnTokensIsPending}
         loading={returnTokensIsPending}
         onClickAction={executeReturnTokensTransaction}
+        errorMessage={txError}
       >
         RETURN {soldToken.symbol}
       </TransactionButton>

@@ -6,15 +6,11 @@ import {
   convertQuantityToWei,
   numberWithCommas,
 } from "@/utils/utilFunc";
-import {
-  useWaitForTransactionReceipt,
-  useWriteContract
-} from "wagmi";
 import CONSTANTS from "@/utils/constants";
 import Decimal from "decimal.js";
 import RangeSlider from "./RangeSlider";
 import TransactionButton from "./TransactionButton";
-import { getAccount, simulateContract } from "wagmi/actions";
+import { getAccount } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import useStore from "@/store/useStore";
@@ -23,6 +19,7 @@ import { base } from "viem/chains";
 import CreatorFee from "@/app/types/CreatorFee";
 import Tooltip from "./Tooltip";
 import { config } from "@/wagmiConfig";
+import useContractTransaction from "@/utils/useContractTransaction";
 
 interface ClaimModalProps {
   visible: boolean;
@@ -31,13 +28,10 @@ interface ClaimModalProps {
 }
 
 const ClaimModal: FC<ClaimModalProps> = ({ visible, onClose, creatorFee }) => {
-  const { id: feeId, creator, token, amount: maxClaimAmountWei } = creatorFee;
+  const { id: feeId, token, amount: maxClaimAmountWei } = creatorFee;
 
-const {
-    connector,
-    address: connectedAddress,
-    chainId: connectedChainId,
-  } = getAccount(config);
+  const { address: connectedAddress, chainId: connectedChainId } =
+    getAccount(config);
 
   const { creatorFees, setCreatorFees } = useStore();
 
@@ -47,8 +41,18 @@ const {
   );
 
   const [claimAmount, setClaimAmount] = useState<string>(maxClaimAmount);
-  const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
-  const [soldTokenAllowance, setSoldTokenAllowance] = useState<string>("0");
+  const [txError, setTxError] = useState<string | null>(null);
+
+  // Reset txError after 10 seconds
+  useEffect(() => {
+    if (txError !== null) {
+      const timer = setTimeout(() => {
+        setTxError(null);
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [txError]);
 
   // Calculate step from one 1000th of the max
   const step: number = useMemo(
@@ -67,18 +71,14 @@ const {
 
   // claimFees TX hooks
   const {
-    data: claimFeesHash,
     isPending: claimFeesIsPending,
-    writeContract: writeClaimFees,
-  } = useWriteContract();
-  const { isLoading: claimFeesIsConfirming, isSuccess: claimFeesSuccess } =
-    useWaitForTransactionReceipt({
-      hash: claimFeesHash,
-    });
-
-  // useEffect to handle claimFees transaction success
-  useEffect(() => {
-    const handleSuccess = async () => {
+    executeTransaction: executeClaimFeesTransaction,
+  } = useContractTransaction({
+    abi: RiskophobeProtocolAbi,
+    contractAddress: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+    functionName: "claimFees",
+    args: [token.address as `0x${string}`, BigInt(claimAmountWei)],
+    onSuccess: () => {
       // Update creator fee by decreasing the amount
       const newAmountWei = maxClaimAmountWei - Number(claimAmountWei);
       const newCreatorFees = creatorFees.map((creatorFee) => {
@@ -94,39 +94,21 @@ const {
       setCreatorFees(newCreatorFees);
       // TODO => success modal
       return onClose();
-    };
-    if (claimFeesSuccess) {
-      handleSuccess();
-    }
-  }, [claimFeesSuccess]);
-
-  const handleClaimFees = async () => {
-    try {
-      const { request } = await simulateContract(config, {
-        abi: RiskophobeProtocolAbi,
-        address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-        functionName: "claimFees",
-        args: [token.address as `0x${string}`, BigInt(claimAmountWei)],
-        connector: connector,
-      });
-      writeClaimFees(request);
-    } catch (e) {
-      console.error("handleClaimFees ERROR", e);
-    }
-  };
+    },
+    onError: (errorMessage) => {
+      setTxError(errorMessage);
+    },
+  });
 
   const transactionButton = () => {
     if (!connectedAddress) return <SignInButton />;
     if (connectedChainId !== base.id) return <SwitchChainButton />;
     return (
       <TransactionButton
-        disabled={
-          new Decimal(claimAmountWei).lte(0) ||
-          claimFeesIsConfirming ||
-          claimFeesIsPending
-        }
-        loading={claimFeesIsConfirming || claimFeesIsPending}
-        onClickAction={handleClaimFees}
+        disabled={new Decimal(claimAmountWei).lte(0) || claimFeesIsPending}
+        loading={claimFeesIsPending}
+        onClickAction={executeClaimFeesTransaction}
+        errorMessage={txError}
       >
         CLAIM {token.symbol}
       </TransactionButton>
