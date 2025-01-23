@@ -107,13 +107,13 @@ const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
   return (
     <Modal visible={visible} title={`Remove this offer`} onClose={onClose}>
       <div className="flex flex-col gap-4 items-center">
-        <p className="flex items-center">
+        <p className="flex items-center flex-wrap">
           You will receive
-          <TokenLogo symbol={soldToken.symbol} size={14} className="mx-1" />
+          <TokenLogo symbol={soldToken.symbol} size={18} className="mx-1" />
           {formattedSoldTokenAmount} {soldToken.symbol} and
           <TokenLogo
             symbol={collateralToken.symbol}
-            size={14}
+            size={18}
             className="mx-1"
           />
           {formattedCollateralBalance} {collateralToken.symbol}
