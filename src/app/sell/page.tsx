@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, Fragment } from "react";
 import {
+  abbreviateAmount,
   calculateCollateralPerOneSoldToken,
   calculateExchangeRate,
   convertQuantityFromWei,
@@ -9,6 +10,7 @@ import {
   getFormattedDate,
   getFormattedDateFromSecondsTimestamp,
   getTimestampSecondsFromDate,
+  numberWithCommas,
 } from "@/utils/utilFunc";
 import CONSTANTS from "@/utils/constants";
 import ERC20Token from "../types/ERC20Token";
@@ -40,6 +42,7 @@ import SwitchChainButton from "@/components/SwitchChainButton";
 import RangeSlider from "@/components/RangeSlider";
 import dynamic from "next/dynamic";
 import DateRangePicker from "@/components/DateRangePicker";
+import Tooltip from "@/components/Tooltip";
 
 const ClientOnlyDate = dynamic(() => import("@/components/ClientOnlyDate"), {
   ssr: false,
@@ -88,7 +91,7 @@ const Sell = () => {
   );
   const [soldTokenAmount, setSoldTokenAmount] = useState<string>("");
   const [collateralAmount, setCollateralAmount] = useState<string>("");
-  const [creatorFee, setCreatorFee] = useState<number>(0); // fee in basis points
+  const [creatorFee, setCreatorFee] = useState<number>(2.5);
   const [startDate, setStartDate] = useState<Date>(currentDate);
   const [endDate, setEndDate] = useState<Date>(oneMonthFromNow);
 
@@ -326,7 +329,7 @@ const Sell = () => {
   const offerSummaryContent = () => (
     <Fragment>
       <p>
-        💱 Exchange rate: {collateralPerSoldToken} {collateralToken?.symbol} per
+        💱 Exchange rate: <Tooltip message={numberWithCommas(collateralPerSoldToken)}>{abbreviateAmount(collateralPerSoldToken, '', 3)}</Tooltip> {collateralToken?.symbol} per
         1 {soldToken?.symbol}
       </p>
       <p>🤑 User fee: {creatorFee}%</p>

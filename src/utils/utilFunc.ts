@@ -250,8 +250,14 @@ export const abbreviateAmount = (
     suffix = "k"; // Thousand
   }
 
-  // Calculate the value and round it to the specified number of decimals
-  const value = bnAmountAbs.div(10 ** exponent).toFixed(decimals);
+  const bnAmountDivided = bnAmountAbs.div(10 ** exponent);
+  if (bnAmountDivided.gte(1000)) {
+    // IF value is over 1000 quadrillions, show an emoji to avoid taking extra space
+    return `${isNegative ? "-" : ""}${prefix}🤯`;
+  }
+
+  // ELSE round it to the specified number of decimals
+  const value = bnAmountDivided.toFixed(decimals);
 
   return `${isNegative ? "-" : ""}${prefix}${value}${suffix}`;
 };
