@@ -1,4 +1,4 @@
-import React, { Fragment, ReactNode } from "react";
+import React, { Fragment, ReactNode, useEffect, useRef, useState } from "react";
 
 type InfoModalProps = {
   children: ReactNode;
@@ -6,6 +6,14 @@ type InfoModalProps = {
 };
 
 const InfoModal: React.FC<InfoModalProps> = ({ children, title }) => {
+  const modalRef = useRef<HTMLDialogElement>(null);
+  const [visible, setVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!modalRef.current) return;
+    visible ? modalRef.current.showModal() : modalRef.current.close();
+  }, [visible]);
+
   const modalId = "info_modal";
 
   return (
@@ -13,7 +21,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ children, title }) => {
       <span className="inline-block">
         <button
           className="text-gray-500 hover:text-gray-700 focus:outline-none"
-          onClick={() => document.getElementById(modalId)?.showModal()}
+          onClick={() => setVisible(true)}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -31,13 +39,13 @@ const InfoModal: React.FC<InfoModalProps> = ({ children, title }) => {
           </svg>
         </button>
       </span>
-      <dialog id={modalId} className="modal">
+      <dialog ref={modalRef} id={modalId} className="modal">
         <span className="modal-box space-y-2">
           {title ? <h3 className="font-bold text-lg">{title}</h3> : null}
           {children}
         </span>
         <form method="dialog" className="modal-backdrop">
-          <button>Close</button>
+          <button onClick={() => setVisible(false)}>Close</button>
         </form>
       </dialog>
     </Fragment>

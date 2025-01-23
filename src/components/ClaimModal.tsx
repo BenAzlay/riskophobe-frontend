@@ -57,7 +57,7 @@ const ClaimModal: FC<ClaimModalProps> = ({ visible, onClose, creatorFee }) => {
   // Calculate step from one 1000th of the max
   const step: number = useMemo(
     () => parseFloat((Number(maxClaimAmount) / 100).toFixed(token.decimals)),
-    [maxClaimAmount]
+    [maxClaimAmount, token.decimals]
   );
 
   const claimAmountWei = useMemo(

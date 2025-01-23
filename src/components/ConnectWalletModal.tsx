@@ -4,6 +4,7 @@ import { Connector, useConnect, useDisconnect } from "wagmi";
 import useStore from "@/store/useStore";
 import Modal from "@/components/Modal";
 import { FC } from "react";
+import Image from "next/image";
 
 const ConnectWalletModal: FC = () => {
   const { connect, connectors } = useConnect();
@@ -38,12 +39,13 @@ const ConnectWalletModal: FC = () => {
               className="btn btn-secondary btn-outline w-full text-start"
               onClick={() => handleConnect(connector)}
             >
-              {!!connector?.icon ? (
+              {!!connector?.icon ? (      
                 <img
                   src={connector.icon}
                   width={18}
                   height={18}
                   className="rounded-md"
+                  alt={connector.name}
                 />
               ) : null}
               {connector.name}

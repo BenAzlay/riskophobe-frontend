@@ -79,7 +79,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
   // ELSE use maxCollateralIn
   const userMaxCollateralIn = useMemo(() => {
     if (
-      new Decimal(maxCollateralIn).gt(collateralBalance) &&
+      new Decimal(maxCollateralIn).gt(formattedCollateralBalance) &&
       new Decimal(formattedCollateralBalance).gt(0)
     )
       return formattedCollateralBalance;
@@ -92,7 +92,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
       parseFloat(
         (Number(userMaxCollateralIn) / 100).toFixed(collateralToken.decimals)
       ),
-    [userMaxCollateralIn]
+    [userMaxCollateralIn, collateralToken.decimals]
   );
 
   const collateralInWei = useMemo(

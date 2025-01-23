@@ -86,7 +86,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
   // ELSE use soldTokenBought
   const userMaxSoldTokenIn = useMemo(() => {
     if (
-      new Decimal(soldTokenBought).gt(soldTokenBalance) &&
+      new Decimal(soldTokenBought).gt(formattedSoldTokenBalance) &&
       new Decimal(formattedSoldTokenBalance).gt(0)
     )
       return formattedSoldTokenBalance;
@@ -99,7 +99,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
       parseFloat(
         (Number(userMaxSoldTokenIn) / 100).toFixed(soldToken.decimals)
       ),
-    [userMaxSoldTokenIn]
+    [userMaxSoldTokenIn, soldToken.decimals]
   );
 
   const soldTokenInWei = useMemo(

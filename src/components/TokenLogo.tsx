@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { FC } from "react";
 
 interface TokenSymbolAndLogoProps {
@@ -12,7 +13,7 @@ const TokenLogo: FC<TokenSymbolAndLogoProps> = ({ symbol, size = 20, className }
   return (
     <img
       src={logo}
-      alt={symbol}
+      alt={symbol ?? "TOKEN"}
       className={`rounded-full ${className}`}
       style={{
         width: size,

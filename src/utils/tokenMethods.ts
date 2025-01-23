@@ -1,7 +1,6 @@
 import ERC20Token from "@/app/types/ERC20Token";
-import { getConfig } from "@/wagmi";
 import { ethers } from "ethers";
-import { erc20Abi, zeroAddress } from "viem";
+import { ContractFunctionParameters, erc20Abi, zeroAddress } from "viem";
 import { readContract, readContracts } from "wagmi/actions";
 import { abi as priceFeedAbi } from "@/abi/aggregatorV3InterfaceAbi";
 import CONSTANTS from "./constants";
@@ -32,7 +31,7 @@ export const getTokenDetails = async (
       (address) => !!ethers.isAddress(address)
     );
 
-    const contracts = uniqueAddresses.flatMap((address) => {
+    const contracts: ContractFunctionParameters[] = uniqueAddresses.flatMap((address) => {
       // If address of Chainlink price feed is in constant, use it
       const priceFeedAddress =
         CONSTANTS.TOKENS.find((token) =>

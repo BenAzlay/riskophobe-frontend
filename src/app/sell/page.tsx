@@ -241,7 +241,7 @@ const Sell = () => {
       setCollateralToken(tokenDetails[1]);
     };
     getAndSetTokensList();
-  }, [CONSTANTS.TOKENS]);
+  }, []);
 
   const getSoldTokenBalance = async () =>
     await getTokenBalance(soldToken?.address, connectedAddress);

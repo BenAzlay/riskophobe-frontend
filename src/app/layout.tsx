@@ -4,7 +4,6 @@ import "../styles/globals.css";
 import { Inter } from "next/font/google";
 import { Fragment, type ReactNode } from "react";
 
-import { Providers } from "./providers";
 import Navbar from "@/components/Navbar";
 import Head from "next/head";
 import ConnectWalletModal from "@/components/ConnectWalletModal";

@@ -1,9 +1,5 @@
-import ERC20Token from "@/app/types/ERC20Token";
-import { getConfig } from "@/wagmi";
 import Decimal from "decimal.js";
 import { ethers } from "ethers";
-import { erc20Abi } from "viem";
-import { readContracts } from "wagmi/actions";
 
 /**
  * Converts a Date object to a Unix timestamp in seconds.
@@ -297,8 +293,8 @@ export const getFormattedDateFromSecondsTimestamp = (
  * @returns A boolean indicating whether the two addresses are equivalent.
  */
 export const compareEthereumAddresses = (
-  address1: string,
-  address2: string
+  address1: string | undefined,
+  address2: string | undefined
 ): boolean => {
   try {
     // Validate and normalize the addresses
