@@ -148,6 +148,17 @@ const Sell = () => {
     connectedAddress,
   ]);
 
+  // Reset txError after 10 seconds
+  useEffect(() => {
+    if (txError !== null) {
+      const timer = setTimeout(() => {
+        setTxError(null);
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [txError]);
+
   // APROVE TX HOOK
   const {
     isPending: approveIsPending,
@@ -325,6 +336,7 @@ const Sell = () => {
           disabled={approveIsPending || new Decimal(soldTokenAmountWei).lte(0)}
           loading={approveIsPending}
           onClickAction={executeApproveTransaction}
+          errorMessage={txError}
         >
           APPROVE {soldToken?.symbol}
         </TransactionButton>
@@ -341,6 +353,7 @@ const Sell = () => {
         }
         onClickAction={executeCreateOfferTransaction}
         loading={createOfferIsPending}
+        errorMessage={txError}
       >
         CREATE OFFER
       </TransactionButton>
@@ -418,11 +431,6 @@ const Sell = () => {
         {formErrors.length > 0 ? errorsBox() : offerSummary()}
         {/* Submit */}
         {transactionButton()}
-        {!!txError ? (
-          <div role="alert" className="alert alert-error">
-            {txError}
-          </div>
-        ) : null}
       </form>
     </div>
   );

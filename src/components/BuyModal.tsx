@@ -10,10 +10,7 @@ import {
   convertQuantityToWei,
 } from "@/utils/utilFunc";
 import { ethers } from "ethers";
-import {
-  useWaitForTransactionReceipt,
-  useWriteContract
-} from "wagmi";
+import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
 import CONSTANTS from "@/utils/constants";
 import { useAsyncEffect } from "@/utils/customHooks";
@@ -23,11 +20,12 @@ import TransactionButton from "./TransactionButton";
 import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
-import { erc20Abi } from "viem";
+import { erc20Abi, zeroAddress } from "viem";
 import useStore from "@/store/useStore";
 import { base } from "viem/chains";
 import SwitchChainButton from "./SwitchChainButton";
 import { config } from "@/wagmiConfig";
+import useContractTransaction from "@/utils/useContractTransaction";
 
 interface BuyModalProps {
   visible: boolean;
@@ -48,17 +46,18 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
     creator,
   } = offer;
 
-const {
+  const {
     connector,
     address: connectedAddress,
     chainId: connectedChainId,
   } = getAccount(config);
-  
+
   const { offers, setOffers } = useStore();
 
   const [collateralIn, setCollateralIn] = useState<string>("0");
   const [collateralBalance, setCollateralBalance] = useState<string>("0");
   const [collateralAllowance, setCollateralAllowance] = useState<string>("0");
+  const [txError, setTxError] = useState<string | null>(null);
 
   // Max collateral spendable for the amount of sold token left in the offer
   const maxCollateralInWei = useMemo(
@@ -155,67 +154,50 @@ const {
     setCollateralIn(new Decimal(newValue).toString());
   };
 
+  // Reset txError after 10 seconds
+  useEffect(() => {
+    if (txError !== null) {
+      const timer = setTimeout(() => {
+        setTxError(null);
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [txError]);
+
   // Approve TX hooks
   const {
-    data: approveHash,
     isPending: approveIsPending,
-    writeContract: writeApprove,
-    error: approveError,
-  } = useWriteContract();
-  const { isLoading: approveIsConfirming, isSuccess: approveSuccess } =
-    useWaitForTransactionReceipt({
-      hash: approveHash,
-    });
-
-  // useEffect to handle approve transaction success
-  useEffect(() => {
-    const fetchAllowance = async () => {
-      try {
-        const _allowance = await getCollateralAllowance();
-        setCollateralAllowance(_allowance);
-      } catch (error) {
-        console.error("Error fetching allowance", error);
-      }
-    };
-
-    if (approveSuccess) {
-      console.log("Transaction approved successfully!");
-      fetchAllowance();
-    }
-  }, [approveSuccess]);
-
-  const handleApprove = async () => {
-    try {
-      const { request } = await simulateContract(config, {
-        abi: erc20Abi,
-        address: collateralToken.address as `0x${string}`,
-        functionName: "approve",
-        args: [
-          CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-          BigInt(collateralInWei),
-        ],
-        connector: connector,
-      });
-      writeApprove(request);
-    } catch (e) {
-      console.error("handleApprove ERROR", e);
-    }
-  };
+    executeTransaction: executeApproveTransaction,
+  } = useContractTransaction({
+    abi: erc20Abi,
+    contractAddress: collateralToken?.address ?? zeroAddress,
+    functionName: "approve",
+    args: [
+      CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+      BigInt(collateralInWei),
+    ],
+    onSuccess: async () => {
+      console.log("Approval successful");
+      setTxError(null);
+      const _allowance = await getCollateralAllowance();
+      setCollateralAllowance(_allowance);
+    },
+    onError: (errorMessage) => {
+      setTxError(errorMessage);
+    },
+  });
 
   // buyTokens TX hooks
   const {
-    data: buyTokensHash,
     isPending: buyTokensIsPending,
-    writeContract: writeBuyTokens,
-  } = useWriteContract();
-  const { isLoading: buyTokensIsConfirming, isSuccess: buyTokensSuccess } =
-    useWaitForTransactionReceipt({
-      hash: buyTokensHash,
-    });
-
-  // useEffect to handle buyTokens transaction success
-  useEffect(() => {
-    const handleSuccess = async () => {
+    executeTransaction: executeBuyTokensTransaction,
+  } = useContractTransaction({
+    abi: RiskophobeProtocolAbi,
+    contractAddress: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+    functionName: "buyTokens",
+    args: [BigInt(offerId), BigInt(collateralInWei), BigInt(0)],
+    onSuccess: async () => {
       // Update offer collateralBalance and soldTokenAmount
       const newOffers = offers.map((offer) => {
         if (offer.id === offerId) {
@@ -236,28 +218,11 @@ const {
       // Update balance and allowance
       const payload = await collateralBalanceAndAllowanceGetter();
       collateralBalanceAndAllowanceSetter(payload);
-    };
-    if (buyTokensSuccess) {
-      // Update collateral balance and allowance
-      handleSuccess();
-    }
-  }, [buyTokensSuccess]);
-
-  const handleBuyTokens = async () => {
-    try {
-      const { request } = await simulateContract(config, {
-        abi: RiskophobeProtocolAbi,
-        address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-        functionName: "buyTokens",
-        args: [BigInt(offerId), BigInt(collateralInWei), BigInt(0)],
-        connector: connector,
-      });
-      console.log(`handleBuyTokens request:`, request);
-      writeBuyTokens(request);
-    } catch (e) {
-      console.error("handleBuyTokens ERROR", e);
-    }
-  };
+    },
+    onError: (errorMessage) => {
+      setTxError(errorMessage);
+    },
+  });
 
   const transactionButton = () => {
     if (!connectedAddress) return <SignInButton />;
@@ -267,25 +232,22 @@ const {
         <TransactionButton
           disabled={
             approveIsPending ||
-            approveIsConfirming ||
             !!hasEnoughCollateralAllowance ||
             new Decimal(collateralInWei).lte(0)
           }
-          loading={approveIsPending || approveIsConfirming}
-          onClickAction={handleApprove}
+          loading={approveIsPending}
+          onClickAction={executeApproveTransaction}
+          errorMessage={txError}
         >
           APPROVE {collateralToken?.symbol}
         </TransactionButton>
       );
     return (
       <TransactionButton
-        disabled={
-          new Decimal(collateralInWei).lte(0) ||
-          buyTokensIsConfirming ||
-          buyTokensIsPending
-        }
-        loading={buyTokensIsConfirming || buyTokensIsPending}
-        onClickAction={handleBuyTokens}
+        disabled={new Decimal(collateralInWei).lte(0) || buyTokensIsPending}
+        loading={buyTokensIsPending}
+        onClickAction={executeBuyTokensTransaction}
+        errorMessage={txError}
       >
         BUY {soldToken.symbol}
       </TransactionButton>

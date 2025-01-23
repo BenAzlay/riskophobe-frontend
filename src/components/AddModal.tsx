@@ -4,10 +4,7 @@ import { FC, useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
 import { convertQuantityFromWei, convertQuantityToWei } from "@/utils/utilFunc";
-import {
-  useWaitForTransactionReceipt,
-  useWriteContract
-} from "wagmi";
+import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import CONSTANTS from "@/utils/constants";
 import TransactionButton from "./TransactionButton";
 import { getAccount, simulateContract } from "wagmi/actions";
@@ -22,8 +19,9 @@ import Decimal from "decimal.js";
 import { ethers } from "ethers";
 import { useAsyncEffect } from "@/utils/customHooks";
 import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
-import { erc20Abi } from "viem";
+import { erc20Abi, zeroAddress } from "viem";
 import { config } from "@/wagmiConfig";
+import useContractTransaction from "@/utils/useContractTransaction";
 
 interface AddModalProps {
   visible: boolean;
@@ -32,30 +30,17 @@ interface AddModalProps {
 }
 
 const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
-  const {
-    id: offerId,
-    soldToken,
-    collateralToken,
-    exchangeRate,
-    creatorFeeBp,
-    startTime,
-    endTime,
-    soldTokenAmount,
-    creator,
-    collateralBalance,
-  } = offer;
+  const { id: offerId, soldToken } = offer;
 
-  const {
-    connector,
-    address: connectedAddress,
-    chainId: connectedChainId,
-  } = getAccount(config);
+  const { address: connectedAddress, chainId: connectedChainId } =
+    getAccount(config);
 
   const { offers, setOffers } = useStore();
 
   const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
   const [soldTokenAllowance, setSoldTokenAllowance] = useState<string>("0");
   const [amountToAdd, setAmountToAdd] = useState<string>("");
+  const [txError, setTxError] = useState<string | null>(null);
 
   const amountToAddWei = useMemo(
     () => convertQuantityToWei(amountToAdd, soldToken?.decimals ?? 18),
@@ -105,70 +90,50 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
     [connectedAddress, soldToken?.address]
   );
 
-  // approval tx hooks
-  const {
-    data: approveHash,
-    isPending: approveIsPending,
-    writeContract: writeApprove,
-    error: approveError,
-  } = useWriteContract();
-  const { isLoading: approveIsConfirming, isSuccess: approveSuccess } =
-    useWaitForTransactionReceipt({
-      hash: approveHash,
-    });
-
-  // useEffect to handle approve transaction success
+  // Reset txError after 10 seconds
   useEffect(() => {
-    const fetchAllowance = async () => {
-      try {
-        const _allowance = await getSoldTokenAllowance();
-        setSoldTokenAllowance(_allowance);
-      } catch (error) {
-        console.error("Error fetching allowance", error);
-      }
-    };
+    if (txError !== null) {
+      const timer = setTimeout(() => {
+        setTxError(null);
+      }, 10000); // 10 seconds
 
-    if (approveSuccess) {
-      console.log("Transaction approved successfully!");
-      fetchAllowance();
+      return () => clearTimeout(timer);
     }
-  }, [approveSuccess]);
+  }, [txError]);
 
-  const handleApprove = async () => {
-    try {
-      const { request } = await simulateContract(config, {
-        abi: erc20Abi,
-        address: soldToken.address as `0x${string}`,
-        functionName: "approve",
-        args: [
-          CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-          BigInt(amountToAddWei),
-        ],
-        connector: connector,
-      });
-      console.log(`handleApprove request:`, request);
-      writeApprove(request);
-    } catch (e) {
-      console.error("handleApprove ERROR", e);
-    }
-  };
-
-  // addSoldTokens tx hooks
+  // approval tx hook
   const {
-    data: addSoldTokensHash,
-    isPending: addSoldTokensIsPending,
-    writeContract: writeAddSoldTokens,
-  } = useWriteContract();
-  const {
-    isLoading: addSoldTokensIsConfirming,
-    isSuccess: addSoldTokensSuccess,
-  } = useWaitForTransactionReceipt({
-    hash: addSoldTokensHash,
+    isPending: approveIsPending,
+    executeTransaction: executeApproveTransaction,
+  } = useContractTransaction({
+    abi: erc20Abi,
+    contractAddress: soldToken?.address ?? zeroAddress,
+    functionName: "approve",
+    args: [
+      CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+      BigInt(amountToAddWei),
+    ],
+    onSuccess: async () => {
+      console.log("Approval successful");
+      setTxError(null);
+      const _allowance = await getSoldTokenAllowance();
+      setSoldTokenAllowance(_allowance);
+    },
+    onError: (errorMessage) => {
+      setTxError(errorMessage);
+    },
   });
 
-  // useEffect to handle addSoldTokens transaction success
-  useEffect(() => {
-    const handleTxSuccess = async () => {
+  // addSoldTokens tx hook
+  const {
+    isPending: addSoldTokensIsPending,
+    executeTransaction: executeAddSoldTokensTransaction,
+  } = useContractTransaction({
+    abi: RiskophobeProtocolAbi,
+    contractAddress: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+    functionName: "addSoldTokens",
+    args: [BigInt(offerId), BigInt(amountToAddWei)],
+    onSuccess: async () => {
       // Update offer by increasing its soldTokenAmount
       const newOffers = offers.map((offer) => {
         if (offer.id === offerId) {
@@ -186,26 +151,11 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
       // Update balance & allowance
       const payload = await soldTokenBalanceAndAllowanceGetter();
       soldTokenBalanceAndAllowanceSetter(payload);
-    };
-    if (addSoldTokensSuccess) {
-      handleTxSuccess();
-    }
-  }, [addSoldTokensSuccess]);
-
-  const handleAddSoldTokens = async () => {
-    try {
-      const { request } = await simulateContract(config, {
-        abi: RiskophobeProtocolAbi,
-        address: CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-        functionName: "addSoldTokens",
-        args: [BigInt(offerId), BigInt(amountToAddWei)],
-        connector: connector,
-      });
-      writeAddSoldTokens(request);
-    } catch (e) {
-      console.error("handleAddSoldTokens ERROR", e);
-    }
-  };
+    },
+    onError: (errorMessage) => {
+      setTxError(errorMessage);
+    },
+  });
 
   const transactionButton = () => {
     if (!connectedAddress) return <SignInButton />;
@@ -215,21 +165,22 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
         <TransactionButton
           disabled={
             approveIsPending ||
-            approveIsConfirming ||
             !!hasEnoughSoldTokenAllowance ||
             new Decimal(amountToAddWei).lte(0)
           }
-          loading={approveIsPending || approveIsConfirming}
-          onClickAction={handleApprove}
+          loading={approveIsPending}
+          onClickAction={executeApproveTransaction}
+          errorMessage={txError}
         >
           APPROVE {soldToken?.symbol}
         </TransactionButton>
       );
     return (
       <TransactionButton
-        onClickAction={handleAddSoldTokens}
-        disabled={addSoldTokensIsPending || addSoldTokensIsConfirming}
-        loading={addSoldTokensIsPending || addSoldTokensIsConfirming}
+        onClickAction={executeAddSoldTokensTransaction}
+        disabled={addSoldTokensIsPending}
+        loading={addSoldTokensIsPending}
+        errorMessage={txError}
       >
         ADD {soldToken.symbol}
       </TransactionButton>
