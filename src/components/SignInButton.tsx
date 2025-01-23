@@ -2,17 +2,15 @@
 
 import useStore from "@/store/useStore";
 import React from "react";
+import TransactionButton from "./TransactionButton";
 
 const SignInButton: React.FC = () => {
   const { setWalletDialogOpen } = useStore();
 
   return (
-    <button
-      className="btn btn-primary w-full"
-      onClick={() =>setWalletDialogOpen(true)}
-    >
+    <TransactionButton onClickAction={() => setWalletDialogOpen(true)}>
       SIGN IN
-    </button>
+    </TransactionButton>
   );
 };
 

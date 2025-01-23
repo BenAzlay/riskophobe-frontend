@@ -6,7 +6,7 @@ import Modal from "@/components/Modal";
 import { FC } from "react";
 
 const ConnectWalletModal: FC = () => {
-  const { connect, connectors, isPending } = useConnect();
+  const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const { walletDialogOpen, setWalletDialogOpen } = useStore();
 

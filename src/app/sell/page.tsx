@@ -147,6 +147,31 @@ const Sell = () => {
     [soldTokenBalance, soldToken?.decimals]
   );
 
+  const formErrors = useMemo((): string[] => {
+    const _errors: string[] = [];
+    // Sold token amount exceeds balance
+    if (
+      ethers.isAddress(connectedAddress) &&
+      new Decimal(soldTokenAmountWei).gt(soldTokenBalance)
+    ) {
+      _errors.push(
+        `⚖️ ${soldToken?.symbol ?? "Sold token"} amount exceeds balance.`
+      );
+    }
+    // Start date is after end date
+    if (startDate.getTime() > endDate.getTime()) {
+      _errors.push(`⏳ Start date cannot be after end date.`);
+    }
+    return _errors;
+  }, [
+    soldToken?.symbol,
+    startDate,
+    endDate,
+    soldTokenAmountWei,
+    soldTokenBalance,
+    connectedAddress,
+  ]);
+
   useEffect(() => {
     const getAndSetTokensList = async () => {
       const tokenDetails = await getTokenDetails(
@@ -314,6 +339,22 @@ const Sell = () => {
     </Fragment>
   );
 
+  const offerSummary = () => (
+    <div className="collapse  collapse-arrow border-2 border-primary rounded-md bg-[#6B46C120]">
+      <input type="checkbox" />
+      <div className="collapse-title text-xl font-medium">Offer summary</div>
+      <div className="collapse-content">{offerSummaryContent()}</div>
+    </div>
+  );
+
+  const errorsBox = () => (
+    <div className="border-2 border-error rounded-md bg-[#E53E3E20] text-red-300 px-2 py-2">
+      {formErrors.map((formError) => (
+        <p>{formError}</p>
+      ))}
+    </div>
+  );
+
   const transactionButton = () => {
     if (!connectedAddress) return <SignInButton />;
     if (connectedChainId !== base.id) return <SwitchChainButton />;
@@ -341,7 +382,8 @@ const Sell = () => {
           !hasEnoughSoldTokenAllowance ||
           !hasEnoughSoldTokenBalance ||
           createOfferIsConfirming ||
-          createOfferIsPending
+          createOfferIsPending ||
+          formErrors.length > 0
         }
         onClickAction={handleCreateOffer}
         loading={createOfferIsConfirming || createOfferIsPending}
@@ -418,13 +460,7 @@ const Sell = () => {
             defaultEndDate={oneMonthFromNow}
           />
         </div>
-        <div className="collapse  collapse-arrow border-2 border-primary rounded-md bg-[#6B46C120]">
-          <input type="checkbox" />
-          <div className="collapse-title text-xl font-medium">
-            Offer summary
-          </div>
-          <div className="collapse-content">{offerSummaryContent()}</div>
-        </div>
+        {formErrors.length > 0 ? errorsBox() : offerSummary()}
         {/* Submit */}
         {transactionButton()}
       </form>

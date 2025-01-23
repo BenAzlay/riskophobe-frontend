@@ -40,6 +40,15 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     }
   };
 
+  const handleCalendarClose = () => {
+    if (!!startDate && !endDate) {
+      // Set 2 days after start date
+      const newEndDate = new Date(startDate.getTime() + 2 * 86400000);
+      setEndDate(newEndDate);
+      onChange(startDate, newEndDate);
+    }
+  };
+
   const CustomInput = React.forwardRef<
     HTMLButtonElement,
     React.HTMLProps<HTMLButtonElement>
@@ -57,6 +66,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
   return (
     <DatePicker
+      onCalendarClose={handleCalendarClose}
       selected={startDate}
       onChange={handleDateChange}
       startDate={startDate}
@@ -69,6 +79,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
         />
       }
       minDate={new Date()} // Disable past dates
+      withPortal
     />
   );
 };
