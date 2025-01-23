@@ -18,10 +18,7 @@ import Decimal from "decimal.js";
 import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import { erc20Abi, zeroAddress } from "viem";
-import {
-  useWaitForTransactionReceipt,
-  useWriteContract
-} from "wagmi";
+import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import {
   getTokenAllowance,
   getTokenBalance,
@@ -76,11 +73,6 @@ const Sell = () => {
     useWaitForTransactionReceipt({
       hash: approveHash,
     });
-
-  useEffect(
-    () => console.log(createOfferFailureReason),
-    [createOfferFailureReason]
-  );
 
   const currentTs = useCurrentTimestamp();
 
@@ -486,7 +478,7 @@ const Sell = () => {
         {transactionButton()}
         {approveError || createOfferError ? (
           <div role="alert" className="alert alert-error">
-            {/* {createOfferFailureReason} */}
+            {createOfferFailureReason?.message.split('\n')[0] ?? "Transaction failed"}
           </div>
         ) : null}
       </form>

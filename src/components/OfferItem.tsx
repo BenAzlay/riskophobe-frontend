@@ -216,7 +216,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
             {abbreviateAmount(formattedSoldTokenAmount, "", 2)}
           </Tooltip>
         </p>
-        <p className="inline-flex gap-1">
+        <div className="inline-flex gap-1">
           🛡️ Money back: {moneyBackPercent}%
           <InfoModal title="User fees">
             <p>
@@ -229,7 +229,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
               {collateralToken.symbol}.
             </p>
           </InfoModal>
-        </p>
+        </div>
         <p>
           🏁 {startDuration > 0 ? "Started" : "Starts in"}{" "}
           {formatDuration(Math.abs(startDuration))}{" "}
