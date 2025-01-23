@@ -329,8 +329,11 @@ const Sell = () => {
   const offerSummaryContent = () => (
     <Fragment>
       <p>
-        💱 Exchange rate: <Tooltip message={numberWithCommas(collateralPerSoldToken)}>{abbreviateAmount(collateralPerSoldToken, '', 3)}</Tooltip> {collateralToken?.symbol} per
-        1 {soldToken?.symbol}
+        💱 Exchange rate:{" "}
+        <Tooltip message={numberWithCommas(collateralPerSoldToken)}>
+          {abbreviateAmount(collateralPerSoldToken, "", 3)}
+        </Tooltip>{" "}
+        {collateralToken?.symbol} per 1 {soldToken?.symbol}
       </p>
       <p>🤑 User fee: {creatorFee}%</p>
       <p>
@@ -351,9 +354,9 @@ const Sell = () => {
   );
 
   const errorsBox = () => (
-    <div className="border-2 border-error rounded-md bg-[#E53E3E20] text-red-300 px-2 py-2">
-      {formErrors.map((formError) => (
-        <p>{formError}</p>
+    <div className="border-2 border-error rounded-md bg-[#E53E3E20] text-red-300 font-semibold px-2 py-2">
+      {formErrors.map((formError, index) => (
+        <p key={index}>{formError}</p>
       ))}
     </div>
   );
@@ -367,8 +370,6 @@ const Sell = () => {
           disabled={
             approveIsPending ||
             approveIsConfirming ||
-            !!hasEnoughSoldTokenAllowance ||
-            !hasEnoughSoldTokenAllowance ||
             new Decimal(soldTokenAmountWei).lte(0)
           }
           loading={approveIsPending || approveIsConfirming}

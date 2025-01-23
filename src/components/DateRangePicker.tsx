@@ -54,7 +54,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     React.HTMLProps<HTMLButtonElement>
   >(({ value, onClick }, ref) => (
     <button
-      className="btn btn-primary btn-outline w-full no-animation"
+      className="btn btn-secondary btn-outline w-full no-animation font-bold"
       onClick={onClick}
       ref={ref}
       type="button"
