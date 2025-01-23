@@ -35,6 +35,7 @@ import dynamic from "next/dynamic";
 import DateRangePicker from "@/components/DateRangePicker";
 import Tooltip from "@/components/Tooltip";
 import { config } from "@/wagmiConfig";
+import useContractTransaction from "@/utils/useContractTransaction";
 
 const ClientOnlyDate = dynamic(() => import("@/components/ClientOnlyDate"), {
   ssr: false,
@@ -46,33 +47,8 @@ const oneMonthFromNow: Date = new Date(
 );
 
 const Sell = () => {
-  const {
-    connector,
-    address: connectedAddress,
-    chainId: connectedChainId,
-  } = getAccount(config);
-
-  const {
-    data: createOfferHash,
-    isPending: createOfferIsPending,
-    writeContract: writeCreateOffer,
-    error: createOfferError,
-    failureReason: createOfferFailureReason,
-  } = useWriteContract();
-  const { isLoading: createOfferIsConfirming, isSuccess: createOfferSuccess } =
-    useWaitForTransactionReceipt({
-      hash: createOfferHash,
-    });
-  const {
-    data: approveHash,
-    isPending: approveIsPending,
-    writeContract: writeApprove,
-    error: approveError,
-  } = useWriteContract();
-  const { isLoading: approveIsConfirming, isSuccess: approveSuccess } =
-    useWaitForTransactionReceipt({
-      hash: approveHash,
-    });
+  const { address: connectedAddress, chainId: connectedChainId } =
+    getAccount(config);
 
   const currentTs = useCurrentTimestamp();
 
@@ -172,6 +148,74 @@ const Sell = () => {
     connectedAddress,
   ]);
 
+  // APROVE TX HOOK
+  const {
+    isPending: approveIsPending,
+    isSuccess: approveSuccess,
+    error: approveError,
+    executeTransaction: executeApproveTransaction,
+  } = useContractTransaction({
+    abi: erc20Abi,
+    contractAddress: soldToken?.address ?? zeroAddress,
+    functionName: "approve",
+    args: [
+      CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
+      BigInt(soldTokenAmountWei),
+    ],
+    onSuccess: async () => {
+      console.log("Approval successful");
+      const _allowance = await getSoldTokenAllowance();
+      setSoldTokenAllowance(_allowance);
+    },
+  });
+
+  // CREATE OFFER TX HOOK
+  const getCreateOfferArgs = () => {
+    const collateralTokenAddress = (collateralToken?.address ??
+      zeroAddress) as `0x${string}`;
+    const soldTokenAddress = (soldToken?.address ??
+      zeroAddress) as `0x${string}`;
+
+    let startDateTs: number = getTimestampSecondsFromDate(startDate);
+    // Make sure start date is at least 5 minutes in the future to account for tx time
+    if (currentTs >= startDateTs - 300) startDateTs += 300;
+    const endDateTs: number = getTimestampSecondsFromDate(endDate);
+
+    const creatorFeeBp = creatorFee * 100;
+
+    return [
+      collateralTokenAddress,
+      soldTokenAddress,
+      BigInt(soldTokenAmountWei),
+      BigInt(exchangeRate),
+      creatorFeeBp,
+      startDateTs,
+      endDateTs,
+    ];
+  };
+  const {
+    isPending: createOfferIsPending,
+    isSuccess: createOfferSuccess,
+    error: createOfferError,
+    executeTransaction: executeCreateOfferTransaction,
+  } = useContractTransaction({
+    abi: RiskophobeProtocolAbi,
+    contractAddress: CONSTANTS.RISKOPHOBE_CONTRACT,
+    functionName: "createOffer",
+    args: getCreateOfferArgs(),
+    onSuccess: async () => {
+      console.log("Create offer successful");
+      try {
+        setSoldTokenAmount("");
+        setCollateralAmount("");
+        const payload = await soldTokenBalanceAndAllowanceGetter();
+        soldTokenBalanceAndAllowanceSetter(payload);
+      } catch (error) {
+        console.error("Error fetching balance", error);
+      }
+    },
+  });
+
   useEffect(() => {
     const getAndSetTokensList = async () => {
       const tokenDetails = await getTokenDetails(
@@ -233,107 +277,6 @@ const Sell = () => {
     onChangeEndDate(end);
   };
 
-  // useEffect to handle approve transaction success
-  useEffect(() => {
-    const fetchAllowance = async () => {
-      try {
-        const _allowance = await getSoldTokenAllowance();
-        setSoldTokenAllowance(_allowance);
-      } catch (error) {
-        console.error("Error fetching allowance", error);
-      }
-    };
-
-    if (approveSuccess) {
-      console.log("Transaction approved successfully!");
-      fetchAllowance();
-    }
-  }, [approveSuccess]);
-
-  const handleApprove = async () => {
-    try {
-      const soldTokenAddress: string = soldToken?.address ?? zeroAddress;
-
-      const { request } = await simulateContract(config, {
-        abi: erc20Abi,
-        address: soldTokenAddress as `0x${string}`,
-        functionName: "approve",
-        args: [
-          CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`,
-          BigInt(soldTokenAmountWei),
-        ],
-        connector: connector,
-      });
-      console.log(`handleCreateOffer request:`, request);
-      writeApprove(request);
-    } catch (e) {
-      console.error("handleApprove ERROR", e);
-    }
-  };
-
-  // useEffect to handle createOffer transaction success
-  useEffect(() => {
-    const fetchBalanceAndAllowance = async () => {
-      try {
-        const payload = await soldTokenBalanceAndAllowanceGetter();
-        soldTokenBalanceAndAllowanceSetter(payload);
-      } catch (error) {
-        console.error("Error fetching balance", error);
-      }
-    };
-
-    if (createOfferSuccess) {
-      console.log("createOffer successful!");
-      fetchBalanceAndAllowance();
-      setSoldTokenAmount("");
-      setCollateralAmount("");
-    }
-  }, [createOfferSuccess]);
-
-  const handleCreateOffer = async () => {
-    try {
-      if (
-        !ethers.isAddress(soldToken?.address) ||
-        !ethers.isAddress(collateralToken?.address)
-      ) {
-        throw new Error("Invalid token addresses");
-      }
-
-      const collateralTokenAddress = collateralToken.address as `0x${string}`;
-      const soldTokenAddress = soldToken.address as `0x${string}`;
-
-      let startDateTs: number = getTimestampSecondsFromDate(startDate);
-      // Make sure start date is at least 5 minutes in the future to account for tx time
-      if (currentTs >= startDateTs - 300) startDateTs += 300;
-      const endDateTs: number = getTimestampSecondsFromDate(endDate);
-
-      const creatorFeeBp = creatorFee * 100;
-
-      const RiskophobeProtocolAddress =
-        CONSTANTS.RISKOPHOBE_CONTRACT as `0x${string}`;
-
-      const { request } = await simulateContract(config, {
-        abi: RiskophobeProtocolAbi,
-        address: RiskophobeProtocolAddress,
-        functionName: "createOffer",
-        args: [
-          collateralTokenAddress,
-          soldTokenAddress,
-          BigInt(soldTokenAmountWei),
-          BigInt(exchangeRate),
-          creatorFeeBp,
-          startDateTs,
-          endDateTs,
-        ],
-        connector: connector,
-      });
-      console.log(`handleCreateOffer request:`, request);
-      writeCreateOffer(request);
-    } catch (e) {
-      console.error("handleCreateOffer ERROR", e);
-    }
-  };
-
   const offerSummaryContent = () => (
     <Fragment>
       <p>
@@ -375,13 +318,9 @@ const Sell = () => {
     if (!hasEnoughSoldTokenAllowance)
       return (
         <TransactionButton
-          disabled={
-            approveIsPending ||
-            approveIsConfirming ||
-            new Decimal(soldTokenAmountWei).lte(0)
-          }
-          loading={approveIsPending || approveIsConfirming}
-          onClickAction={handleApprove}
+          disabled={approveIsPending || new Decimal(soldTokenAmountWei).lte(0)}
+          loading={approveIsPending}
+          onClickAction={executeApproveTransaction}
         >
           APPROVE {soldToken?.symbol}
         </TransactionButton>
@@ -393,12 +332,11 @@ const Sell = () => {
           new Decimal(collateralAmountWei).lte(0) ||
           !hasEnoughSoldTokenAllowance ||
           !hasEnoughSoldTokenBalance ||
-          createOfferIsConfirming ||
           createOfferIsPending ||
           formErrors.length > 0
         }
-        onClickAction={handleCreateOffer}
-        loading={createOfferIsConfirming || createOfferIsPending}
+        onClickAction={executeCreateOfferTransaction}
+        loading={createOfferIsPending}
       >
         CREATE OFFER
       </TransactionButton>
@@ -478,7 +416,7 @@ const Sell = () => {
         {transactionButton()}
         {approveError || createOfferError ? (
           <div role="alert" className="alert alert-error">
-            {createOfferFailureReason?.message.split('\n')[0] ?? "Transaction failed"}
+            {createOfferError?.split("\n")[0] ?? "Transaction failed"}
           </div>
         ) : null}
       </form>
