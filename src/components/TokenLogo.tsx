@@ -7,7 +7,7 @@ interface TokenSymbolAndLogoProps {
 }
 
 const TokenLogo: FC<TokenSymbolAndLogoProps> = ({ symbol, size = 20, className }) => {
-  const logo: string = `/tokenLogos/${symbol}.png`;
+  const logo: string = `/tokenLogos/${symbol ?? 'NOTFOUND'}.png`;
 
   return (
     <img

@@ -1,6 +1,7 @@
 import { abbreviateAmount, numberWithCommas } from "@/utils/utilFunc";
 import { FC, ReactNode } from "react";
 import Tooltip from "./Tooltip";
+import LoadingText from "./LoadingText";
 
 interface TokenAmountFieldProps {
   amount: string;
@@ -11,6 +12,7 @@ interface TokenAmountFieldProps {
   balanceLabel?: string;
   placeholder?: string;
   tokenPrice?: number; // Optional: Token price for $ value calculation
+  balanceIsLoading?: boolean;
 }
 
 const TokenAmountField: FC<TokenAmountFieldProps> = ({
@@ -22,6 +24,7 @@ const TokenAmountField: FC<TokenAmountFieldProps> = ({
   balanceLabel = "Balance",
   placeholder = "Amount",
   tokenPrice = 1, // Default token price, replace with actual value
+  balanceIsLoading = false,
 }) => {
   const usdValue = parseFloat(amount || "0") * tokenPrice;
 
@@ -58,7 +61,7 @@ const TokenAmountField: FC<TokenAmountFieldProps> = ({
             onClick={() => onChangeAmount(tokenBalance)}
           >
             <p>
-              {balanceLabel}: {abbreviateAmount(tokenBalance, "", 3)}
+              {balanceLabel}: {!balanceIsLoading ? abbreviateAmount(tokenBalance, "", 3) : <LoadingText />}
             </p>
           </div>
         )}

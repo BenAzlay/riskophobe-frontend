@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, Fragment } from "react";
+import { useState, useEffect, useMemo, Fragment, useRef } from "react";
 import {
   abbreviateAmount,
   calculateCollateralPerOneSoldToken,
@@ -80,6 +80,8 @@ const Sell = () => {
   const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
   const currentTs = useCurrentTimestamp();
+
+  const soldTokenBalanceIsLoaded = useRef(false);
 
   const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
   const [soldTokenAllowance, setSoldTokenAllowance] = useState<string>("0");
@@ -204,6 +206,7 @@ const Sell = () => {
       !ethers.isAddress(connectedAddress)
     )
       return ["0", "0"];
+    soldTokenBalanceIsLoaded.current = false;
     return await Promise.all([getSoldTokenBalance(), getSoldTokenAllowance()]);
   };
   const soldTokenBalanceAndAllowanceSetter = ([newBalance, newAllowance]: [
@@ -212,6 +215,7 @@ const Sell = () => {
   ]): void => {
     setSoldTokenBalance(newBalance);
     setSoldTokenAllowance(newAllowance);
+    soldTokenBalanceIsLoaded.current = true;
   };
   useAsyncEffect(
     soldTokenBalanceAndAllowanceGetter,
@@ -410,6 +414,7 @@ const Sell = () => {
             tokenBalance={formattedSoldTokenBalance}
             placeholder="Sold amount"
             tokenPrice={soldToken?.price ?? 0}
+            balanceIsLoading={!soldTokenBalanceIsLoaded.current}
             tokenComponent={
               <TokensDropdown
                 tokens={tokensList}
