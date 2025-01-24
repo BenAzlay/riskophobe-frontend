@@ -17,12 +17,12 @@ import { getTokenDetails } from "@/utils/tokenMethods";
 import Link from "next/link";
 import { config } from "@/wagmiConfig";
 import { getAccount } from "wagmi/actions";
+import { useAccount } from "wagmi";
 
 function App() {
   const offersHaveLoaded = useRef(false);
   const { setOffers, offers, setDeposits, deposits } = useStore();
-  const { address: connectedAddress, chainId: connectedChainId } =
-    getAccount(config);
+  const { address: connectedAddress } = useAccount();
 
   // Fetch offers every 60s from subgraph
   const fetchOffers = async () => {
@@ -216,7 +216,7 @@ function App() {
       );
     }
     return (
-      <div className="px-6 py-8 border-2 border-dashed border-secondary space-y-2 text-center w-fit justify-self-center rounded-md">
+      <div className="empty-box">
         <h6 className="text-lg font-semibold">🫥 No offers found</h6>
         <p>
           Try changing the filters above, or{" "}

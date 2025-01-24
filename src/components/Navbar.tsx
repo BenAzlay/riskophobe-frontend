@@ -2,7 +2,7 @@
 
 import useStore from "@/store/useStore";
 import React, { Fragment, useState } from "react";
-import { useDisconnect } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
 import { usePathname } from "next/navigation"; // For detecting active route
 import Link from "next/link"; // For client-side navigation
 import Modal from "./Modal";
@@ -13,7 +13,7 @@ import { config } from "@/wagmiConfig";
 const Navbar: React.FC = () => {
   const { setWalletDialogOpen } = useStore();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
-  const { address: connectedAddress } = getAccount(config);
+  const { address: connectedAddress } = useAccount();
   const { disconnectAsync } = useDisconnect();
   const pathname = usePathname(); // Detect the current route
 

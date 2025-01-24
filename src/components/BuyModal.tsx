@@ -10,7 +10,11 @@ import {
   convertQuantityToWei,
 } from "@/utils/utilFunc";
 import { ethers } from "ethers";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import {
+  useAccount,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
 import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
 import CONSTANTS from "@/utils/constants";
 import { useAsyncEffect } from "@/utils/customHooks";
@@ -46,11 +50,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
     creator,
   } = offer;
 
-  const {
-    connector,
-    address: connectedAddress,
-    chainId: connectedChainId,
-  } = getAccount(config);
+  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
   const { offers, setOffers } = useStore();
 

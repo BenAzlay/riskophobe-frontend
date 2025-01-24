@@ -20,6 +20,7 @@ import CreatorFee from "@/app/types/CreatorFee";
 import Tooltip from "./Tooltip";
 import { config } from "@/wagmiConfig";
 import useContractTransaction from "@/utils/useContractTransaction";
+import { useAccount } from "wagmi";
 
 interface ClaimModalProps {
   visible: boolean;
@@ -30,8 +31,7 @@ interface ClaimModalProps {
 const ClaimModal: FC<ClaimModalProps> = ({ visible, onClose, creatorFee }) => {
   const { id: feeId, token, amount: maxClaimAmountWei } = creatorFee;
 
-  const { address: connectedAddress, chainId: connectedChainId } =
-    getAccount(config);
+  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
   const { creatorFees, setCreatorFees } = useStore();
 

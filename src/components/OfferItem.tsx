@@ -23,6 +23,7 @@ import TokenLogo from "./TokenLogo";
 import InfoModal from "./InfoModal";
 import { config } from "@/wagmiConfig";
 import { getAccount } from "wagmi/actions";
+import { useAccount } from "wagmi";
 
 interface OfferItemProps {
   offer: Offer;
@@ -37,7 +38,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [perSoldTokenMode, setPerSoldTokenMode] = useState(true);
 
-  const { address: connectedAddress } = getAccount(config);
+  const { address: connectedAddress } = useAccount();
 
   const currentTs = useCurrentTimestamp();
 

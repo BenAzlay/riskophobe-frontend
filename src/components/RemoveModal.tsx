@@ -6,15 +6,14 @@ import Offer from "@/app/types/Offer";
 import { convertQuantityFromWei } from "@/utils/utilFunc";
 import CONSTANTS from "@/utils/constants";
 import TransactionButton from "./TransactionButton";
-import { getAccount } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import useStore from "@/store/useStore";
 import { base } from "viem/chains";
 import SwitchChainButton from "./SwitchChainButton";
 import TokenLogo from "./TokenLogo";
-import { config } from "@/wagmiConfig";
 import useContractTransaction from "@/utils/useContractTransaction";
+import { useAccount } from "wagmi";
 
 interface RemoveModalProps {
   visible: boolean;
@@ -31,8 +30,7 @@ const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
     collateralBalance,
   } = offer;
 
-  const { address: connectedAddress, chainId: connectedChainId } =
-    getAccount(config);
+  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
   const { offers, setOffers } = useStore();
 

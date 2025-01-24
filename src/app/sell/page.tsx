@@ -35,6 +35,7 @@ import DateRangePicker from "@/components/DateRangePicker";
 import Tooltip from "@/components/Tooltip";
 import { config } from "@/wagmiConfig";
 import useContractTransaction from "@/utils/useContractTransaction";
+import { useAccount } from "wagmi";
 
 const ClientOnlyDate = dynamic(() => import("@/components/ClientOnlyDate"), {
   ssr: false,
@@ -46,8 +47,7 @@ const oneMonthFromNow: Date = new Date(
 );
 
 const Sell = () => {
-  const { address: connectedAddress, chainId: connectedChainId } =
-    getAccount(config);
+  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
   const currentTs = useCurrentTimestamp();
 

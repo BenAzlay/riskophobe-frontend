@@ -10,18 +10,21 @@ import FeesTable from "@/components/FeesTable";
 import { Fragment, useState } from "react";
 import ClaimModal from "@/components/ClaimModal";
 import { compareEthereumAddresses } from "@/utils/utilFunc";
-import { getAccount } from "wagmi/actions";
-import { config } from "@/wagmiConfig";
+import SignInButton from "@/components/SignInButton";
+import { useAccount } from "wagmi";
+import Link from "next/link";
 
 const Claim = () => {
   const { setCreatorFees, creatorFees } = useStore();
-  const { address: connectedAddress } = getAccount(config);
+  const [feesLoading, setFeesLoading] = useState(true);
+  const { address: connectedAddress } = useAccount();
   const [selectedFee, setSelectedFee] = useState<CreatorFee | null>(null);
 
   const creatorFeesGetter = async (): Promise<CreatorFee[]> => {
     try {
       if (!ethers.isAddress(connectedAddress))
         throw new Error("No account connected");
+      setFeesLoading(true);
       // Fetch user's creatorFees from subgraph
       const response = await fetch(
         `/api/fetchCreatorFees?creator=${connectedAddress}`
@@ -51,17 +54,61 @@ const Claim = () => {
   };
   const creatorFeesSetter = (_creatorFees: CreatorFee[]) => {
     setCreatorFees(_creatorFees);
+    setFeesLoading(false);
   };
   useAsyncEffect(creatorFeesGetter, creatorFeesSetter, [connectedAddress]);
+
+  const emptyMessageBox = () => {
+    if (!ethers.isAddress(connectedAddress)) {
+      return (
+        <div className="empty-box">
+          <h6 className="mb-4 font-semibold text-lg">
+            Sign in to see your rewards
+          </h6>
+          <SignInButton />
+        </div>
+      );
+    }
+    if (feesLoading) {
+      return (
+        <div className="justify-center text-center w-full py-8">
+          <h6 className="font-semibold text-lg text-center inline-flex gap-2 justify-self-center">
+            <span className="loading loading-spinner"></span>
+            Loading Rewards...
+          </h6>
+        </div>
+      );
+    }
+    return (
+      <div className="empty-box">
+        <h6 className="mb-4 font-semibold text-lg">
+          🥲 You have no rewards (yet!)
+        </h6>
+        <p>
+          <Link
+            href={"/sell"}
+            className="text-primary font-bold cursor-pointer"
+          >
+            Create an offer
+          </Link>{" "}
+          to earn rewards
+        </p>
+      </div>
+    );
+  };
 
   return (
     <Fragment>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">Claim your rewards</h1>
-        <FeesTable
-          creatorFees={creatorFees}
-          onSelectFee={(fee: CreatorFee) => setSelectedFee(fee)}
-        />
+        {creatorFees.length > 0 ? (
+          <FeesTable
+            creatorFees={creatorFees}
+            onSelectFee={(fee: CreatorFee) => setSelectedFee(fee)}
+          />
+        ) : (
+          emptyMessageBox()
+        )}
       </div>
       {selectedFee !== null ? (
         <ClaimModal

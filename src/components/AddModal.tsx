@@ -21,6 +21,7 @@ import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
 import { erc20Abi, zeroAddress } from "viem";
 import { config } from "@/wagmiConfig";
 import useContractTransaction from "@/utils/useContractTransaction";
+import { useAccount } from "wagmi";
 
 interface AddModalProps {
   visible: boolean;
@@ -31,8 +32,7 @@ interface AddModalProps {
 const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
   const { id: offerId, soldToken } = offer;
 
-  const { address: connectedAddress, chainId: connectedChainId } =
-    getAccount(config);
+  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
   const { offers, setOffers } = useStore();
 

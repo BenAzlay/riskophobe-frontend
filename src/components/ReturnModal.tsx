@@ -24,6 +24,7 @@ import SwitchChainButton from "./SwitchChainButton";
 import { base } from "viem/chains";
 import { config } from "@/wagmiConfig";
 import useContractTransaction from "@/utils/useContractTransaction";
+import { useAccount } from "wagmi";
 
 interface ReturnModalProps {
   visible: boolean;
@@ -53,11 +54,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
 
   const { netCollateralAmount: collateralDepositedWei } = deposit;
 
-  const {
-    connector,
-    address: connectedAddress,
-    chainId: connectedChainId,
-  } = getAccount(config);
+  const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
   const { offers, setOffers } = useStore();
 
