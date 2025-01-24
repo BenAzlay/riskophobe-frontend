@@ -365,7 +365,7 @@ const Sell = () => {
       </h1>
       <div
         id="form"
-        className="space-y-4 max-w-lg border-2 rounded-md border-primary p-2 sm:p-4 w-full overflow-hidden"
+        className="space-y-4 max-w-lg border-2 rounded-md border-primary p-2 sm:p-4 w-full overflow-hidden bg-[#1E1E1EA0]"
       >
         <div className="space-y-2">
           <label className="field-title">What do you want to sell?</label>

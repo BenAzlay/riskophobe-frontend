@@ -60,7 +60,7 @@ const FeesTable: React.FC<Props> = ({ creatorFees, onSelectFee }) => {
 
   return (
     <div className="overflow-x-auto">
-      <table className="table w-full">
+      <table className="table w-full bg-[#1E1E1EA0]">
         <thead>
           <tr>
             <th>Token</th>
