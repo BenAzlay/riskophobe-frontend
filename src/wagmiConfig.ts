@@ -1,9 +1,21 @@
 import { http, createConfig, createStorage, cookieStorage } from "wagmi";
 import { base } from "wagmi/chains";
+import { walletConnect } from "wagmi/connectors";
 
 export const config = createConfig({
   chains: [base],
-  connectors: [],
+  connectors: [
+    walletConnect({
+      showQrModal: true,
+      projectId: "04d04d61ec633ddec6850161afd3c58e",
+      metadata: {
+        name: "Riskophobe",
+        description: "Invest Risk-Free. Get Money Back.",
+        url: "https://riskophobe.com",
+        icons: ['/icon.png'],
+      },
+    })
+  ],
   storage: createStorage({
     storage: cookieStorage,
   }),
