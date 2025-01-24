@@ -99,7 +99,7 @@ const Claim = () => {
 
   return (
     <Fragment>
-      <div className="p-6">
+      <div className="page-container">
         <h1 className="text-2xl font-bold mb-4">Claim your rewards</h1>
         {creatorFees.length > 0 ? (
           <FeesTable

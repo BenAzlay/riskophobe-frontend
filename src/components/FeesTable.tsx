@@ -43,7 +43,7 @@ const FeesTable: React.FC<Props> = ({ creatorFees, onSelectFee }) => {
         </td>
         <td>
           <button
-            className="btn btn-primary btn-sm"
+            className="btn btn-primary btn-sm font-semibold"
             onClick={() => onSelectFee(fee)}
             disabled={amountWei <= 0}
           >

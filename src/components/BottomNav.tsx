@@ -8,14 +8,14 @@ const BottomNav: React.FC = () => {
   const pathname = usePathname(); // Detect the current route
 
   const navLinks = [
-    { href: "/", label: "Buy" },
-    { href: "/sell", label: "Sell" },
-    { href: "/claim", label: "Claim" },
+    { href: "/", label: "🏦 Buy" },
+    { href: "/sell", label: "💸 Sell" },
+    { href: "/claim", label: "🎁 Claim" },
   ];
 
   return (
     <Fragment>
-      <div className="btm-nav bg-neutral text-neutral-content px-4 shadow-md visible sm:hidden">
+      <div className="btm-nav bg-neutral text-neutral-content px-4 shadow-md fixed bottom-0 left-0 right-0 z-50 visible sm:hidden">
         {navLinks.map((link) => (
           <Link key={link.href} href={link.href}>
             <span
