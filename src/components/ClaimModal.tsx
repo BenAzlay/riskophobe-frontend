@@ -10,7 +10,6 @@ import CONSTANTS from "@/utils/constants";
 import Decimal from "decimal.js";
 import RangeSlider from "./RangeSlider";
 import TransactionButton from "./TransactionButton";
-import { getAccount } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import useStore from "@/store/useStore";
@@ -18,7 +17,6 @@ import SwitchChainButton from "./SwitchChainButton";
 import { base } from "viem/chains";
 import CreatorFee from "@/app/types/CreatorFee";
 import Tooltip from "./Tooltip";
-import { config } from "@/wagmiConfig";
 import useContractTransaction from "@/utils/useContractTransaction";
 import { useAccount } from "wagmi";
 

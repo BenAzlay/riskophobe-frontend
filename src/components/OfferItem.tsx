@@ -21,8 +21,6 @@ import AddModal from "./AddModal";
 import RemoveModal from "./RemoveModal";
 import TokenLogo from "./TokenLogo";
 import InfoModal from "./InfoModal";
-import { config } from "@/wagmiConfig";
-import { getAccount } from "wagmi/actions";
 import { useAccount } from "wagmi";
 
 interface OfferItemProps {

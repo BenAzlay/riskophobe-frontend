@@ -4,7 +4,6 @@ import { Connector, useConnect, useDisconnect } from "wagmi";
 import useStore from "@/store/useStore";
 import Modal from "@/components/Modal";
 import { FC } from "react";
-import Image from "next/image";
 
 const ConnectWalletModal: FC = () => {
   const { connect, connectors } = useConnect();

@@ -15,8 +15,6 @@ import { abbreviateAmount, compareEthereumAddresses } from "@/utils/utilFunc";
 import TokenSymbolAndLogo from "@/components/TokenSymbolAndLogo";
 import { getTokenDetails } from "@/utils/tokenMethods";
 import Link from "next/link";
-import { config } from "@/wagmiConfig";
-import { getAccount } from "wagmi/actions";
 import { useAccount } from "wagmi";
 
 function App() {

@@ -11,9 +11,7 @@ import {
 } from "@/utils/utilFunc";
 import { ethers } from "ethers";
 import {
-  useAccount,
-  useWaitForTransactionReceipt,
-  useWriteContract,
+  useAccount
 } from "wagmi";
 import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
 import CONSTANTS from "@/utils/constants";
@@ -21,14 +19,12 @@ import { useAsyncEffect } from "@/utils/customHooks";
 import Decimal from "decimal.js";
 import RangeSlider from "./RangeSlider";
 import TransactionButton from "./TransactionButton";
-import { getAccount, simulateContract } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import { erc20Abi, zeroAddress } from "viem";
 import useStore from "@/store/useStore";
 import { base } from "viem/chains";
 import SwitchChainButton from "./SwitchChainButton";
-import { config } from "@/wagmiConfig";
 import useContractTransaction from "@/utils/useContractTransaction";
 
 interface BuyModalProps {

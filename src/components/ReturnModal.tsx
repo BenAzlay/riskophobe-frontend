@@ -14,7 +14,6 @@ import { useAsyncEffect } from "@/utils/customHooks";
 import Decimal from "decimal.js";
 import RangeSlider from "./RangeSlider";
 import TransactionButton from "./TransactionButton";
-import { getAccount } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import { erc20Abi, zeroAddress } from "viem";
@@ -22,7 +21,6 @@ import { Deposit } from "@/utils/queries";
 import useStore from "@/store/useStore";
 import SwitchChainButton from "./SwitchChainButton";
 import { base } from "viem/chains";
-import { config } from "@/wagmiConfig";
 import useContractTransaction from "@/utils/useContractTransaction";
 import { useAccount } from "wagmi";
 

@@ -7,8 +7,6 @@ import {
   numberWithCommas,
 } from "@/utils/utilFunc";
 import Tooltip from "./Tooltip";
-import TokenLogo from "./TokenLogo";
-import LoadingText from "./LoadingText";
 
 type Props = {
   creatorFees: CreatorFee[];

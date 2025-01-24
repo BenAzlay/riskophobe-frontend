@@ -6,7 +6,6 @@ import Offer from "@/app/types/Offer";
 import { convertQuantityFromWei, convertQuantityToWei } from "@/utils/utilFunc";
 import CONSTANTS from "@/utils/constants";
 import TransactionButton from "./TransactionButton";
-import { getAccount } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import SignInButton from "./SignInButton";
 import useStore from "@/store/useStore";
@@ -19,7 +18,6 @@ import { ethers } from "ethers";
 import { useAsyncEffect } from "@/utils/customHooks";
 import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
 import { erc20Abi, zeroAddress } from "viem";
-import { config } from "@/wagmiConfig";
 import useContractTransaction from "@/utils/useContractTransaction";
 import { useAccount } from "wagmi";
 
