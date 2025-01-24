@@ -1,7 +1,7 @@
 "use client";
 
 import useStore from "@/store/useStore";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 import OfferItem from "@/components/OfferItem";
 import {
   useAsyncEffect,
@@ -19,6 +19,7 @@ import { config } from "@/wagmiConfig";
 import { getAccount } from "wagmi/actions";
 
 function App() {
+  const offersHaveLoaded = useRef(false);
   const { setOffers, offers, setDeposits, deposits } = useStore();
   const { address: connectedAddress, chainId: connectedChainId } =
     getAccount(config);
@@ -57,6 +58,7 @@ function App() {
         })
         .filter(Boolean);
       setOffers(offers);
+      offersHaveLoaded.current = true;
     } catch (e) {
       console.error("fetchOffers ERROR", e);
     }
@@ -201,6 +203,34 @@ function App() {
     </Fragment>
   );
 
+  const emptyMessageBox = () => {
+    if (filteredOffers.length > 0) return null;
+    if (!offersHaveLoaded.current) {
+      return (
+        <div className="justify-center text-center w-full py-8">
+          <h6 className="font-semibold text-lg text-center inline-flex gap-2 justify-self-center">
+            <span className="loading loading-spinner"></span>
+            Loading Offers...
+          </h6>
+        </div>
+      );
+    }
+    return (
+      <div className="px-6 py-8 border-2 border-dashed border-secondary space-y-2 text-center w-fit justify-self-center rounded-md">
+        <h6 className="text-lg font-semibold">🫥 No offers found</h6>
+        <p>
+          Try changing the filters above, or{" "}
+          <Link
+            href={"/sell"}
+            className="text-primary font-bold cursor-pointer"
+          >
+            create one yourself
+          </Link>
+        </p>
+      </div>
+    );
+  };
+
   return (
     <Fragment>
       <div className="hero bg-base-200">
@@ -271,6 +301,7 @@ function App() {
             <OfferItem offer={offer} key={index} />
           ))}
         </div>
+        {emptyMessageBox()}
       </div>
     </Fragment>
   );
