@@ -71,7 +71,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
         </div>
         <div
           id="thumb"
-          className="absolute pointer-events-none"
+          className="absolute pointer-events-none w-6 h-6"
           style={{
             left: `${((value - min) / (max - min)) * 100}%`,
             transform: "translate(-50%, -50%)",
