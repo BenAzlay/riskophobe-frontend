@@ -38,7 +38,7 @@ const TokenAmountField: FC<TokenAmountFieldProps> = ({
 
   return (
     <div className="rounded-md border border-[#333333] bg-[#1e1e1e] px-2 sm:px-4 py-3 w-full">
-      <div className="flex gap-2 items-center">
+      <div className="flex items-center">
         <input
           value={amount}
           onChange={(event) => handleInputChange(event.target.value)}

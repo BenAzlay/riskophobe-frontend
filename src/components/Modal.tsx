@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useEffect } from "react";
 
 interface ModalProps {
   title?: string; // Optional title
@@ -8,29 +8,33 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ title, visible, onClose, children }) => {
-  const modalRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    if (!modalRef.current) return;
-    visible ? modalRef.current.showModal() : modalRef.current.close();
-  }, [visible]);
-
-  const handleClose = () => {
-    if (onClose) {
-      onClose();
+  const handleClose = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose(); // Close when backdrop is clicked
     }
   };
 
   return (
-    <dialog ref={modalRef} className="modal">
-      <div className="modal-box overflow-visible">
-        {title && <h3 className="font-bold text-lg">{title}</h3>}
-        <div className="py-4">{children}</div>
-      </div>
-      <form method="dialog" className="modal-backdrop">
-        <button onClick={() => handleClose()}>close</button>
-      </form>
-    </dialog>
+    <>
+      {visible && (
+        <div
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 flex justify-center items-center"
+          onClick={handleClose}
+        >
+          {/* Modal Content */}
+          <div className="bg-[#1e1e1e] text-white rounded-xl shadow-lg p-6 max-w-lg w-full">
+            {/* Modal Header */}
+            {title && (
+              <h3 className="text-lg font-semibold text-center mb-4 border-b border-[#2d2d2d] pb-2">
+                {title}
+              </h3>
+            )}
+            {/* Modal Body */}
+            <div className="space-y-4">{children}</div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
