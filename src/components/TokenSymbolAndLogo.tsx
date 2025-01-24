@@ -8,9 +8,9 @@ interface TokenSymbolAndLogoProps {
 
 const TokenSymbolAndLogo: FC<TokenSymbolAndLogoProps> = ({ symbol }) => {
   return (
-    <div className="contents space-x-2 gap-2 items-center">
+    <div className="inline-flex gap-2 items-center shrink-0">
       <TokenLogo symbol={symbol} size={20} />
-      <p className="p-0 font-bold">{symbol ?? <LoadingText length={3} initialLength={3} />}</p>
+      <span className="p-0 font-bold">{symbol ?? <LoadingText length={3} initialLength={3} />}</span>
     </div>
   );
 };

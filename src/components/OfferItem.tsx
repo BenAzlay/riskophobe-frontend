@@ -166,7 +166,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
 
   return (
     <Fragment>
-      <div className="flex flex-col gap-2 transition rounded-md p-4 border-2 border-primary hover:border-secondary">
+      <div className="flex flex-col gap-2 transition rounded-md p-4 border-2 border-primary hover:border-secondary bg-[#6B46C110]">
         <h6 className="text-primary text-lg font-bold text-center">
           Buy {soldToken.symbol} for {collateralToken.symbol}
         </h6>

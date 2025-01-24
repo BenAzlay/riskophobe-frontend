@@ -7,6 +7,8 @@ import {
   numberWithCommas,
 } from "@/utils/utilFunc";
 import Tooltip from "./Tooltip";
+import TokenLogo from "./TokenLogo";
+import LoadingText from "./LoadingText";
 
 type Props = {
   creatorFees: CreatorFee[];
@@ -29,12 +31,16 @@ const FeesTable: React.FC<Props> = ({ creatorFees, onSelectFee }) => {
   });
 
   const row = (fee: CreatorFee) => {
-    const { id: feeId, amount: amountWei, token } = fee;
-    const amount = convertQuantityFromWei(amountWei, token.decimals);
+    const {
+      id: feeId,
+      amount: amountWei,
+      token: { symbol, decimals },
+    } = fee;
+    const amount = convertQuantityFromWei(amountWei, decimals);
     return (
       <tr key={feeId} className="hover:bg-base-200">
         <td>
-          <TokenSymbolAndLogo symbol={token.symbol} />
+          <TokenSymbolAndLogo symbol={symbol} />
         </td>
         <td>
           <Tooltip message={numberWithCommas(amount)}>
@@ -47,7 +53,7 @@ const FeesTable: React.FC<Props> = ({ creatorFees, onSelectFee }) => {
             onClick={() => onSelectFee(fee)}
             disabled={amountWei <= 0}
           >
-            CLAIM {token.symbol}
+            CLAIM {symbol}
           </button>
         </td>
       </tr>
