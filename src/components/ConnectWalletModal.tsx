@@ -26,6 +26,21 @@ const ConnectWalletModal: FC = () => {
     );
   };
 
+  const getLogoForConnectorId = (connectorId: string): string => {
+    switch (connectorId) {
+      case "io.metamask":
+        return "/wallets/Metamask.png";
+      case "walletConnect":
+        return "/wallets/WalletConnect.png";
+      case "io.rabby":
+        return "/wallets/Rabby.png";
+      case "app.keplr":
+        return "/wallets/Keplr.png";
+      default:
+        return "/tokenLogos/NOTFOUND.png";
+    }
+  };
+
   return (
     <Modal
       visible={walletDialogOpen}
@@ -39,15 +54,17 @@ const ConnectWalletModal: FC = () => {
               className="btn btn-secondary btn-outline w-full text-start"
               onClick={() => handleConnect(connector)}
             >
-              {!!connector?.icon ? (      
-                <img
-                  src={connector.icon}
-                  width={18}
-                  height={18}
-                  className="rounded-md"
-                  alt={connector.name}
-                />
-              ) : null}
+              <img
+                src={
+                  !!connector?.icon
+                    ? connector.icon
+                    : getLogoForConnectorId(connector.id)
+                }
+                width={18}
+                height={18}
+                className="rounded-md"
+                alt={connector.name}
+              />
               {connector.name}
             </button>
           </li>
