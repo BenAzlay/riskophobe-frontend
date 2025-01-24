@@ -7,9 +7,8 @@ import { usePathname } from "next/navigation"; // For detecting active route
 import Link from "next/link"; // For client-side navigation
 import Modal from "./Modal";
 import { addressShorten } from "@/utils/utilFunc";
-import { getAccount } from "wagmi/actions";
-import { config } from "@/wagmiConfig";
 import TransactionButton from "./TransactionButton";
+import useIsMobile from "@/utils/useIsMobile";
 
 const Navbar: React.FC = () => {
   const { setWalletDialogOpen } = useStore();
@@ -17,6 +16,7 @@ const Navbar: React.FC = () => {
   const { address: connectedAddress } = useAccount();
   const { disconnectAsync } = useDisconnect();
   const pathname = usePathname(); // Detect the current route
+  const isMobile = useIsMobile();
 
   const handleDisconnect = async () => {
     try {
@@ -32,9 +32,24 @@ const Navbar: React.FC = () => {
     <Modal
       visible={logoutDialogOpen}
       onClose={() => setLogoutDialogOpen(false)}
-      title="LOG OUT"
     >
-      <div className="">
+      <div className="space-y-2">
+        <h6>You are connected to:</h6>
+        <div
+          onClick={() =>
+            window.open(
+              `https://basescan.org/address/${connectedAddress}`,
+              "_blank"
+            )
+          }
+          className="cursor-pointer p-2 border-2 border-solid border-neutral inline-flex gap-2 font-semibold w-full"
+        >
+          <span>
+            {isMobile
+              ? addressShorten(connectedAddress as string)
+              : connectedAddress}
+          </span>
+        </div>
         <TransactionButton onClickAction={() => handleDisconnect()}>
           SIGN OUT
         </TransactionButton>
@@ -55,7 +70,7 @@ const Navbar: React.FC = () => {
         <div className="flex-1">
           <div className="flex items-center">
             {/* Logo */}
-            <div className="text-primary font-nimbus text-2xl font-bold">
+            <div className="text-primary font-nimbus  text-4xl sm:text-3xl font-bold">
               <span className="hidden md:inline">Riskophobe</span>
               <span className="md:hidden">R</span>
             </div>
