@@ -15,7 +15,7 @@ const BottomNav: React.FC = () => {
 
   return (
     <Fragment>
-      <div className="btm-nav bg-neutral text-neutral-content px-4 shadow-md fixed bottom-0 left-0 right-0 z-50 visible sm:hidden">
+      <div className="btm-nav fixed bottom-0 left-0 right-0 z-50 bg-neutral text-neutral-content px-4 shadow-md visible sm:hidden">
         {navLinks.map((link) => (
           <Link key={link.href} href={link.href}>
             <span

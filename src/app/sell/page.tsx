@@ -15,7 +15,6 @@ import ERC20Token from "../types/ERC20Token";
 import TokensDropdown from "@/components/TokensDropdown";
 import TokenAmountField from "@/components/TokenAmountField";
 import Decimal from "decimal.js";
-import { getAccount } from "wagmi/actions";
 import { abi as RiskophobeProtocolAbi } from "@/abi/RiskophobeProtocolAbi";
 import { erc20Abi, zeroAddress } from "viem";
 import {
@@ -33,7 +32,6 @@ import RangeSlider from "@/components/RangeSlider";
 import dynamic from "next/dynamic";
 import DateRangePicker from "@/components/DateRangePicker";
 import Tooltip from "@/components/Tooltip";
-import { config } from "@/wagmiConfig";
 import useContractTransaction from "@/utils/useContractTransaction";
 import { useAccount } from "wagmi";
 
@@ -361,9 +359,14 @@ const Sell = () => {
   };
 
   return (
-    <div className="flex flex-col gap-2 items-center py-6">
-      <h1 className="text-2xl font-bold mb-4">Create an Offer</h1>
-      <form className="space-y-4 max-w-lg border-2 rounded-md border-primary p-2 sm:p-4">
+    <div className="flex flex-col gap-2 items-center py-6 w-full overflow-hidden">
+      <h1 className="text-2xl font-bold mb-4 text-center w-full">
+        Create an Offer
+      </h1>
+      <div
+        id="form"
+        className="space-y-4 max-w-lg border-2 rounded-md border-primary p-2 sm:p-4 w-full overflow-hidden"
+      >
         <div className="space-y-2">
           <label className="field-title">What do you want to sell?</label>
           <TokenAmountField
@@ -431,7 +434,7 @@ const Sell = () => {
         {formErrors.length > 0 ? errorsBox() : offerSummary()}
         {/* Submit */}
         {transactionButton()}
-      </form>
+      </div>
     </div>
   );
 };

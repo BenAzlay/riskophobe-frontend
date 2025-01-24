@@ -9,6 +9,7 @@ import Modal from "./Modal";
 import { addressShorten } from "@/utils/utilFunc";
 import { getAccount } from "wagmi/actions";
 import { config } from "@/wagmiConfig";
+import TransactionButton from "./TransactionButton";
 
 const Navbar: React.FC = () => {
   const { setWalletDialogOpen } = useStore();
@@ -31,10 +32,13 @@ const Navbar: React.FC = () => {
     <Modal
       visible={logoutDialogOpen}
       onClose={() => setLogoutDialogOpen(false)}
+      title="LOG OUT"
     >
-      <button className="btn btn-primary" onClick={() => handleDisconnect()}>
-        SIGN OUT
-      </button>
+      <div className="">
+        <TransactionButton onClickAction={() => handleDisconnect()}>
+          SIGN OUT
+        </TransactionButton>
+      </div>
     </Modal>
   );
 
