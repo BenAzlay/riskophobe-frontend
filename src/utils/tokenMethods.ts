@@ -94,7 +94,7 @@ export const getTokenDetails = async (
     });
   } catch (error) {
     console.error("getTokenDetails ERROR:", error);
-    throw new Error("getTokenDetails FAILED");
+    return [];
   }
 };
 
