@@ -10,7 +10,7 @@ import {
   formatDuration,
 } from "@/utils/utilFunc";
 import Decimal from "decimal.js";
-import { FC, Fragment, useMemo, useState } from "react";
+import { FC, Fragment, memo, useMemo, useState } from "react";
 import useStore from "@/store/useStore";
 import TransactionButton from "./TransactionButton";
 import BuyModal from "./BuyModal";
@@ -271,4 +271,4 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
   );
 };
 
-export default OfferItem;
+export default memo(OfferItem);
