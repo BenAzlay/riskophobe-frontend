@@ -62,7 +62,7 @@ const ConnectWalletModal: FC = () => {
                 width={18}
                 height={18}
                 className="rounded-md"
-                alt={connector.name}
+                alt={`${connector.name} logo`}
               />
               {connector.name}
             </button>

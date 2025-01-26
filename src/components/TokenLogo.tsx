@@ -12,7 +12,7 @@ const TokenLogo: FC<TokenSymbolAndLogoProps> = ({ symbol, size = 20, className }
   return (
     <img
       src={logo}
-      alt={symbol ?? "TOKEN"}
+      alt={`${symbol ?? "Token"} logo`}
       className={`rounded-full ${className}`}
       style={{
         width: size,

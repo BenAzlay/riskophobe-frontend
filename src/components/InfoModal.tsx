@@ -22,6 +22,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ children, title }) => {
         <button
           className="text-gray-500 hover:text-gray-700 focus:outline-none"
           onClick={() => setVisible(true)}
+          aria-label="InfoModal"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
