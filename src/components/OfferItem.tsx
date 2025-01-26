@@ -13,15 +13,17 @@ import Decimal from "decimal.js";
 import { FC, Fragment, memo, useMemo, useState } from "react";
 import useStore from "@/store/useStore";
 import TransactionButton from "./TransactionButton";
-import BuyModal from "./BuyModal";
 import { Deposit } from "@/utils/queries";
-import ReturnModal from "./ReturnModal";
 import Tooltip from "./Tooltip";
-import AddModal from "./AddModal";
-import RemoveModal from "./RemoveModal";
 import TokenLogo from "./TokenLogo";
 import InfoModal from "./InfoModal";
 import { useAccount } from "wagmi";
+import dynamic from "next/dynamic";
+
+const BuyModal = dynamic(() => import("./BuyModal"));
+const ReturnModal = dynamic(() => import("./ReturnModal"));
+const AddModal = dynamic(() => import("./AddModal"));
+const RemoveModal = dynamic(() => import("./RemoveModal"));
 
 interface OfferItemProps {
   offer: Offer;
@@ -164,7 +166,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
 
   return (
     <Fragment>
-      <div className="flex flex-col gap-2 transition rounded-md p-4 border-2 border-primary hover:border-secondary bg-[#1E1E1EA0]">
+      <div className="offer-item">
         <h6 className="text-primary text-lg font-bold text-center">
           Buy {soldToken.symbol} for {collateralToken.symbol}
         </h6>
@@ -254,18 +256,18 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
         />
       ) : null}
       {userIsCreator ? (
-        <RemoveModal
-          visible={removeModalOpen}
-          onClose={() => setRemoveModalOpen(false)}
-          offer={offer}
-        />
-      ) : null}
-      {userIsCreator ? (
-        <AddModal
-          visible={addModalOpen}
-          onClose={() => setAddModalOpen(false)}
-          offer={offer}
-        />
+        <Fragment>
+          <RemoveModal
+            visible={removeModalOpen}
+            onClose={() => setRemoveModalOpen(false)}
+            offer={offer}
+          />
+          <AddModal
+            visible={addModalOpen}
+            onClose={() => setAddModalOpen(false)}
+            offer={offer}
+          />
+        </Fragment>
       ) : null}
     </Fragment>
   );

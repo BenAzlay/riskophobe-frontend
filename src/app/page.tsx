@@ -2,7 +2,6 @@
 
 import useStore from "@/store/useStore";
 import { Fragment, useMemo, useRef, useState } from "react";
-import OfferItem from "@/components/OfferItem";
 import {
   useAsyncEffect,
   useVisibilityIntervalEffect,
@@ -16,6 +15,15 @@ import TokenSymbolAndLogo from "@/components/TokenSymbolAndLogo";
 import { getTokenDetails } from "@/utils/tokenMethods";
 import Link from "next/link";
 import { useAccount } from "wagmi";
+import dynamic from "next/dynamic";
+
+const OfferItem = dynamic(() => import("@/components/OfferItem"), {
+  loading: () => (
+    <div className="offer-item min-h-64 items-center justify-center">
+      <p>Loading offer...</p>
+    </div>
+  ),
+});
 
 function App() {
   const offersHaveLoaded = useRef(false);

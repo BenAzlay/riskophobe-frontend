@@ -6,13 +6,15 @@ import { CreatorFee as SubgraphCreatorFee } from "@/utils/queries";
 import CreatorFee from "../types/CreatorFee";
 import { getTokenDetails } from "@/utils/tokenMethods";
 import { ethers } from "ethers";
-import FeesTable from "@/components/FeesTable";
 import { Fragment, useState } from "react";
-import ClaimModal from "@/components/ClaimModal";
 import { compareEthereumAddresses } from "@/utils/utilFunc";
-import SignInButton from "@/components/SignInButton";
 import { useAccount } from "wagmi";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import SignInButton from "@/components/SignInButton";
+import FeesTable from "@/components/FeesTable";
+
+const ClaimModal = dynamic(() => import("@/components/ClaimModal"));
 
 const Claim = () => {
   const { setCreatorFees, creatorFees } = useStore();
@@ -100,7 +102,9 @@ const Claim = () => {
   return (
     <Fragment>
       <div className="page-container">
-        <h1 className="text-2xl font-bold mb-4 justify-self-center">Claim your rewards</h1>
+        <h1 className="text-2xl font-bold mb-4 justify-self-center">
+          Claim your rewards
+        </h1>
         {creatorFees.length > 0 ? (
           <FeesTable
             creatorFees={creatorFees}

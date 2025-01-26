@@ -21,7 +21,7 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  background-image: url('/Riskophobe_Background.png'); /* Path to your image */
+  background-image: url("/Riskophobe_Background.png"); /* Path to your image */
   background-size: cover; /* Ensures the image covers the entire viewport */
   background-repeat: repeat; /* Make the image repeat */
   min-height: 100vh;
@@ -83,4 +83,8 @@ input[type="range"]::-ms-thumb {
 }
 .react-datepicker__input-container {
   width: 100% !important;
+}
+
+.offer-item {
+  @apply flex flex-col gap-2 transition rounded-md p-4 border-2 border-primary hover:border-secondary bg-[#1E1E1EA0];
 }
