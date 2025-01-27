@@ -12,9 +12,9 @@ const CONSTANTS = {
       address: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
       priceFeedAddress: "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
     },
-    // WBTC
+    // cbBTC
     {
-      address: "0x0555E30da8f98308EdB960aa94C0Db47230d2B9c",
+      address: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf",
       priceFeedAddress: "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848F",
     }
   ],

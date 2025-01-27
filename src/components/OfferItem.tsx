@@ -2,7 +2,6 @@ import Offer from "@/app/types/Offer";
 import { useCurrentTimestamp } from "@/utils/customHooks";
 import {
   abbreviateAmount,
-  calculateCollateralPerOneSoldToken,
   calculateSoldTokenForCollateral,
   compareEthereumAddresses,
   convertQuantityFromWei,
@@ -54,17 +53,10 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
     soldTokenAmount,
     creator,
     collateralBalance,
+    collateralPerSoldToken,
+    pricePerSoldToken,
+    soldTokenMarketPriceDifference,
   } = offer;
-
-  const collateralPerSoldToken = useMemo(
-    () =>
-      calculateCollateralPerOneSoldToken(
-        exchangeRate,
-        soldToken.decimals,
-        collateralToken.decimals
-      ),
-    [soldToken.decimals, collateralToken.decimals, exchangeRate]
-  );
 
   const soldTokenPerCollateral = useMemo(
     () =>
@@ -105,24 +97,16 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
     [soldTokenAmount, soldToken.decimals]
   );
 
-  // Value in USD of all sold tokens remaining in offer
+  // Value in USD of all sold tokens remaining in offer (from market price)
   const soldTokenAmountInUsdc = useMemo(
     () => new Decimal(formattedSoldTokenAmount).mul(soldToken.price).toString(),
     [formattedSoldTokenAmount, soldToken.price]
   );
 
-  // Value in USD of 1 sold token in the offer
-  const pricePerSoldToken = useMemo(
-    () =>
-      new Decimal(collateralPerSoldToken).mul(collateralToken.price).toString(),
-    [collateralPerSoldToken, collateralToken.price]
-  );
-
   // Percentage difference between USD sold token price in offer, and in market
-  const soldTokenMarketValueDifference = useMemo(
-    () =>
-      new Decimal(pricePerSoldToken).div(soldToken.price).mul(100).toString(),
-    [pricePerSoldToken, soldToken.price]
+  const priceDifferencePercentage = useMemo(
+    () => new Decimal(soldTokenMarketPriceDifference).mul(100).toString(),
+    [soldTokenMarketPriceDifference]
   );
 
   const userIsCreator = useMemo(
@@ -199,7 +183,9 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
           ={" "}
           <Tooltip
             message={
-              perSoldTokenMode ? collateralPerSoldToken : soldTokenPerCollateral
+              perSoldTokenMode
+                ? new Decimal(collateralPerSoldToken).toString()
+                : soldTokenPerCollateral
             }
           >
             {abbreviateAmount(
@@ -255,18 +241,18 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
             </Tooltip>{" "}
             (
             <Tooltip
-              message={`${numberWithCommas(
-                soldTokenMarketValueDifference
-              )}% of ${soldToken.symbol} market price`}
+              message={`${numberWithCommas(priceDifferencePercentage)}% of ${
+                soldToken.symbol
+              } market price`}
             >
               <b
                 className={`font-semibold ${
-                  new Decimal(soldTokenMarketValueDifference).gt(100)
+                  new Decimal(priceDifferencePercentage).gt(100)
                     ? "text-error"
                     : "text-success"
                 }`}
               >
-                {abbreviateAmount(soldTokenMarketValueDifference, "", 2)}%
+                {abbreviateAmount(priceDifferencePercentage, "", 2)}%
               </b>
             </Tooltip>
             )
@@ -281,8 +267,8 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
             <p>
               The {soldToken.symbol} price for this offer is currently $
               {numberWithCommas(pricePerSoldToken)}, which is{" "}
-              {numberWithCommas(soldTokenMarketValueDifference)}% of its market
-              price of ${numberWithCommas(soldToken.price)}.
+              {numberWithCommas(priceDifferencePercentage)}% of its market price
+              of ${numberWithCommas(soldToken.price)}.
             </p>
             <p>
               💡 Tip: As a buyer, it might be worth buying {soldToken.symbol}{" "}

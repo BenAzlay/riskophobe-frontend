@@ -1,18 +1,23 @@
-import ERC20Token from "@/app/types/ERC20Token";
 import { FC, useState, useEffect, useRef } from "react";
-import TokenSymbolAndLogo from "./TokenSymbolAndLogo";
-import { compareEthereumAddresses } from "@/utils/utilFunc";
 
-interface TokensDropdownProps {
-  tokens: ERC20Token[];
-  selectedToken: ERC20Token | null;
-  onSelectToken: (token: ERC20Token) => void;
+interface FilterOption {
+  id: string;
+  label: string;
+  asc: boolean;
 }
 
-const TokensDropdown: FC<TokensDropdownProps> = ({
-  tokens,
-  selectedToken,
-  onSelectToken,
+interface FiltersDropdownProps {
+  options: FilterOption[];
+  selectedOption: FilterOption;
+  onSelectOption: (id: FilterOption) => void;
+  prefix: string;
+}
+
+const FiltersDropdown: FC<FiltersDropdownProps> = ({
+  options,
+  selectedOption,
+  onSelectOption,
+  prefix = "Sort by",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -48,9 +53,9 @@ const TokensDropdown: FC<TokensDropdownProps> = ({
   }, []);
 
   return (
-    <div ref={dropdownRef} className="relative inline-block">
+    <div ref={dropdownRef} className="relative inline-block w-full sm:w-fit">
       <button
-        className="flex items-center justify-end w-max gap-2 p-2 text-sm font-medium text-white bg-[#1e1e1e] border border-[#333333] rounded-lg shadow-md hover:bg-[#2a2a2a]"
+        className="btn btn-outline btn-secondary w-full sm:w-fit text-start justify-between"
         onClick={(event) => {
           event.preventDefault();
           toggleDropdown();
@@ -58,7 +63,10 @@ const TokensDropdown: FC<TokensDropdownProps> = ({
         aria-expanded={isOpen}
         aria-controls="tokens-dropdown"
       >
-        <TokenSymbolAndLogo symbol={selectedToken?.symbol} />
+        <p>
+          {prefix}{" "}
+          <span className="h-auto text-gray-100">{selectedOption.label}</span>
+        </p>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -79,22 +87,23 @@ const TokensDropdown: FC<TokensDropdownProps> = ({
       {isOpen && (
         <ul
           id="tokens-dropdown"
-          className="absolute z-10 w-full mt-2 bg-[#1e1e1e] border border-[#333333] rounded-lg shadow-lg max-h-60 overflow-y-auto"
+          className="absolute z-10 min-w-max w-full mt-2 bg-[#1e1e1e] border border-[#333333] rounded-lg shadow-lg max-h-60 overflow-y-auto"
         >
-          {tokens.map((token, index) => (
+          {options.map((option, index) => (
             <li
               key={index}
               onClick={() => {
-                onSelectToken(token);
+                onSelectOption(option);
                 setIsOpen(false);
               }}
-              className={`flex items-center gap-2 px-4 py-2 text-sm text-white cursor-pointer hover:bg-[#2a2a2a] ${
-                compareEthereumAddresses(selectedToken?.address, token.address)
+              className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-100 font-semibold cursor-pointer hover:bg-[#2a2a2a] ${
+                selectedOption.id === option.id &&
+                selectedOption.asc === option.asc
                   ? "bg-[#2a2a2a]"
                   : ""
               }`}
             >
-              <TokenSymbolAndLogo symbol={token?.symbol} />
+              {option.label}
             </li>
           ))}
         </ul>
@@ -103,4 +112,4 @@ const TokensDropdown: FC<TokensDropdownProps> = ({
   );
 };
 
-export default TokensDropdown;
+export default FiltersDropdown;

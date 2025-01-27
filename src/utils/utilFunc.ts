@@ -115,7 +115,7 @@ export const calculateCollateralPerOneSoldToken = (
   exchangeRate: number,
   soldTokenDecimals: number,
   collateralTokenDecimals: number
-): string => {
+): number => {
   try {
     // Ensure the exchange rate is valid and greater than zero
     const exchangeRateDecimal = new Decimal(exchangeRate);
@@ -129,9 +129,9 @@ export const calculateCollateralPerOneSoldToken = (
       .div(exchangeRateDecimal)
       .div(new Decimal(10).pow(collateralTokenDecimals));
 
-    return result.toString();
+    return result.toNumber();
   } catch (error) {
-    return "0";
+    return 0;
   }
 };
 

@@ -11,4 +11,7 @@ export default interface Offer {
     soldTokenAmount: number;
     exchangeRate: number;
     collateralBalance: number;
+    collateralPerSoldToken: number;
+    pricePerSoldToken: number;
+    soldTokenMarketPriceDifference: number;
   }

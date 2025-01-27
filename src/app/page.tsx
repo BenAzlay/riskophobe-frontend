@@ -10,12 +10,24 @@ import { Deposit, Offer as SubgraphOffer } from "@/utils/queries";
 import { ethers } from "ethers";
 import ERC20Token from "./types/ERC20Token";
 import Decimal from "decimal.js";
-import { abbreviateAmount, compareEthereumAddresses } from "@/utils/utilFunc";
+import {
+  abbreviateAmount,
+  calculateCollateralPerOneSoldToken,
+  compareEthereumAddresses,
+} from "@/utils/utilFunc";
 import TokenSymbolAndLogo from "@/components/TokenSymbolAndLogo";
 import { getTokenDetails } from "@/utils/tokenMethods";
 import Link from "next/link";
 import { useAccount } from "wagmi";
 import dynamic from "next/dynamic";
+import Offer from "./types/Offer";
+import FiltersDropdown from "@/components/FiltersDropdown";
+
+interface SortingOption {
+  id: keyof Offer;
+  label: string;
+  asc: boolean; // ascending or descending
+}
 
 const OfferItem = dynamic(() => import("@/components/OfferItem"), {
   loading: () => (
@@ -47,22 +59,39 @@ function App() {
         offer.collateralToken.id,
       ]);
       const tokensWithDetails = await getTokenDetails(tokenAddresses);
-      // Add token logos to convert them into ERC20Token type
       const offers = subgraphOffers
         .map((offer: SubgraphOffer) => {
+          // Convert tokens into ERC20Token type
           const soldToken = tokensWithDetails.find((token) =>
             compareEthereumAddresses(token.address, offer.soldToken.id)
           )!;
           const collateralToken = tokensWithDetails.find((token) =>
             compareEthereumAddresses(token.address, offer.collateralToken.id)
           )!;
+          // Collateral per sold token from exchange rate and decimals
+          const collateralPerSoldToken = calculateCollateralPerOneSoldToken(
+            offer.exchangeRate,
+            soldToken.decimals,
+            collateralToken.decimals
+          );
+          // Price per sold token from the offer (not market price)
+          const pricePerSoldToken =
+            collateralPerSoldToken * collateralToken.price;
+          // Difference between offer price and market price
+          const soldTokenMarketPriceDifference =
+            pricePerSoldToken / soldToken.price;
           return {
             ...offer,
+            creatorFeeBp: Number(offer.creatorFeeBp),
             soldToken,
             collateralToken,
+            collateralPerSoldToken,
+            pricePerSoldToken,
+            soldTokenMarketPriceDifference,
           };
         })
         .filter(Boolean);
+      console.log(`offers:`, offers);
       setOffers(offers);
       offersHaveLoaded.current = true;
     } catch (e) {
@@ -86,8 +115,43 @@ function App() {
     },
   ];
 
-  const [filterType, setFilterType] = useState<string>("all"); // all | created | bought
+  const sortingOptions: SortingOption[] = [
+    {
+      id: "soldTokenMarketPriceDifference",
+      label: "Lowest Price Difference",
+      asc: true,
+    },
+    {
+      id: "soldTokenMarketPriceDifference",
+      label: "Highest Price Difference",
+      asc: false,
+    },
+    {
+      id: "startTime",
+      label: "Earliest Start Time",
+      asc: true,
+    },
+    {
+      id: "endTime",
+      label: "Earliest End Time",
+      asc: true,
+    },
+    {
+      id: "endTime",
+      label: "Latest End Time",
+      asc: false,
+    },
+    {
+      id: "creatorFeeBp",
+      label: "Lowest User Fee",
+      asc: true,
+    },
+  ];
+
+  const [filterType, setFilterType] = useState<string>(filterTypeOptions[0].id); // all | created | bought
   const [tokenFilter, setTokenFilter] = useState<ERC20Token | null>(null);
+  const [selectedSortingOption, setSelectedSortingOption] =
+    useState<SortingOption>(sortingOptions[0]);
 
   // An array of all tokens (sold & collateral) used in the offers
   const offerTokens: ERC20Token[] = useMemo(() => {
@@ -139,6 +203,17 @@ function App() {
     [offers, boughtOffers, createrOffers, filterType, tokenFilter]
   );
 
+  const sortedOffers = useMemo(() => {
+    return [...filteredOffers].sort((a, b) => {
+      const attributeA = a[selectedSortingOption.id];
+      const attributeB = b[selectedSortingOption.id];
+
+      if (attributeA < attributeB) return selectedSortingOption.asc ? -1 : 1;
+      if (attributeA > attributeB) return selectedSortingOption.asc ? 1 : -1;
+      return 0;
+    });
+  }, [filteredOffers, selectedSortingOption]);
+
   const depositsGetter = async (): Promise<Deposit[]> => {
     try {
       if (!ethers.isAddress(connectedAddress))
@@ -172,11 +247,29 @@ function App() {
     }
   };
 
+  const handleSelectSortingOption = (option: {
+    id: string;
+    label: string;
+    asc: boolean;
+  }) => {
+    setSelectedSortingOption({
+      ...option,
+      id: option.id as keyof Offer,
+    });
+  };
+
   const filterButtons = () => (
     <Fragment>
       {/* Filter Buttons */}
-      <div className="items-center w-max justify-center gap-4 mb-6 hidden sm:flex">
-        <div className="join">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center w-full gap-4 mb-6 justify-start">
+        {/* Sorting dropdown */}
+        <FiltersDropdown
+          options={sortingOptions}
+          onSelectOption={handleSelectSortingOption}
+          selectedOption={selectedSortingOption}
+          prefix="Sort Offers by:"
+        />
+        <div className="join hidden sm:block">
           {filterTypeOptions.map(({ id, label }) => (
             <button
               key={id}
@@ -189,8 +282,8 @@ function App() {
             </button>
           ))}
         </div>
-        <div className="space-x-2">
-          {/* Token Filters */}
+        {/* Token Filters */}
+        <div className="space-x-2 hidden lg:block">
           {offerTokens.map((token) => (
             <button
               key={token.address}
@@ -303,7 +396,7 @@ function App() {
           id="offers-grid"
           className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
         >
-          {filteredOffers.map((offer, index) => (
+          {sortedOffers.map((offer, index) => (
             <OfferItem offer={offer} key={index} />
           ))}
         </div>
