@@ -257,7 +257,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
             <Tooltip
               message={`${numberWithCommas(
                 soldTokenMarketValueDifference
-              )}% of ${soldToken.symbol}'s market price`}
+              )}% of ${soldToken.symbol} market price`}
             >
               <b
                 className={`font-semibold ${
@@ -274,9 +274,9 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
           <InfoModal title="Offer vs Market Price Difference">
             <p>
               In an offer, a token is being sold at a potentially different
-              price from its market value. As its market price flucuates over
-              the offer's lifetime, it can go lower or higher than the price in
-              the offer.
+              price from its market value. As the market price flucuates over
+              the lifetime of the offer, it can go lower or higher than the
+              price in the offer.
             </p>
             <p>
               The {soldToken.symbol} price for this offer is currently $
