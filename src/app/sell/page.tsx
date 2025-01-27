@@ -192,7 +192,7 @@ const Sell = () => {
     if (currentTs >= startDateTs - 300) startDateTs += 300;
     const endDateTs: number = getTimestampSecondsFromDate(endDate);
 
-    const creatorFeeBp = creatorFee * 100;
+    const creatorFeeBp = Math.floor(creatorFee * 100);
 
     return [
       collateralTokenAddress,
