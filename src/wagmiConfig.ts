@@ -12,7 +12,7 @@ export const config = createConfig({
         name: "Riskophobe",
         description: "Invest Risk-Free. Get Money Back.",
         url: "https://riskophobe.com",
-        icons: ['/icon.png'],
+        icons: ['/icons/icon-512x512.png'],
       },
     })
   ],
