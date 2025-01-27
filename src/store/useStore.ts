@@ -16,6 +16,8 @@ interface StoreState {
   deleteOffer: (offerId: string) => void;
   deposits: Deposit[];
   setDeposits: (arr: Deposit[]) => void;
+  addDeposit: (deposit: Deposit) => void;
+  updateDeposit: (depositId: string, newNetCollateralAmount: number) => void;
   creatorFees: CreatorFee[];
   setCreatorFees: (arr: CreatorFee[]) => void;
 }
@@ -47,6 +49,22 @@ const useStore = create<StoreState>((set) => ({
     }),
   deposits: [],
   setDeposits: (array) => set((state) => ({ deposits: array })),
+  addDeposit: (deposit) =>
+    set((state) => {
+      return { deposits: [...state.deposits, deposit] };
+    }),
+  updateDeposit: (depositId, newNetCollateralAmount) =>
+    set((state) => {
+      const updatedDeposits = state.deposits.map((deposit) =>
+        deposit.id === depositId
+          ? {
+              ...deposit,
+              netCollateralAmount: newNetCollateralAmount,
+            }
+          : deposit
+      );
+      return { deposits: updatedDeposits };
+    }),
   creatorFees: [],
   setCreatorFees: (array) => set((state) => ({ creatorFees: array })),
 }));

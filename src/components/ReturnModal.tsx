@@ -50,11 +50,12 @@ const ReturnModal: FC<ReturnModalProps> = ({
     collateralBalance,
   } = offer;
 
-  const { netCollateralAmount: collateralDepositedWei } = deposit;
+  const { id: depositId, netCollateralAmount: collateralDepositedWei } =
+    deposit;
 
   const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
-  const { updateOffer } = useStore();
+  const { updateOffer, updateDeposit } = useStore();
 
   const [soldTokenIn, setSoldTokenIn] = useState<string>("0");
   const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
@@ -198,9 +199,15 @@ const ReturnModal: FC<ReturnModalProps> = ({
     args: [BigInt(offerId), BigInt(collateralOutWei)],
     onSuccess: async () => {
       // Update offer collateralBalance and soldTokenAmount
-      const newSoldTokenAmount: number = Number(soldTokenAmount) + Number(soldTokenInWei);
-      const newCollateralBalance: number = Number(collateralBalance) - Number(collateralOutWei);
+      const newSoldTokenAmount: number =
+        Number(soldTokenAmount) + Number(soldTokenInWei);
+      const newCollateralBalance: number =
+        Number(collateralBalance) - Number(collateralOutWei);
       updateOffer(offerId, newSoldTokenAmount, newCollateralBalance);
+      // Update deposit
+      const newNetCollateralBalance: number =
+        Number(collateralDepositedWei) - Number(collateralOutWei);
+      updateDeposit(depositId, newNetCollateralBalance);
       setSoldTokenIn("0");
       // Update sold token balance and allowance
       const payload = await soldTokenBalanceAndAllowanceGetter();

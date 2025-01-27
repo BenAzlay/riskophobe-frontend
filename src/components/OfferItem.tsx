@@ -306,6 +306,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
         visible={buyModalOpen}
         onClose={() => setBuyModalOpen(false)}
         offer={offer}
+        deposit={ownDeposit}
       />
       {ownDeposit !== null ? (
         <ReturnModal

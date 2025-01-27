@@ -24,14 +24,16 @@ import useStore from "@/store/useStore";
 import { base } from "viem/chains";
 import SwitchChainButton from "./SwitchChainButton";
 import useContractTransaction from "@/utils/useContractTransaction";
+import { Deposit } from "@/utils/queries";
 
 interface BuyModalProps {
   visible: boolean;
   onClose: () => void;
   offer: Offer;
+  deposit: Deposit | null;
 }
 
-const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
+const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer, deposit }) => {
   const {
     id: offerId,
     soldToken,
@@ -47,7 +49,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
 
   const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
-  const { updateOffer } = useStore();
+  const { updateOffer, addDeposit, updateDeposit } = useStore();
 
   const [collateralIn, setCollateralIn] = useState<string>("0");
   const [collateralBalance, setCollateralBalance] = useState<string>("0");
@@ -196,8 +198,25 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
       // Update offer collateralBalance and soldTokenAmount
       const newSoldTokenAmount: number =
         Number(soldTokenAmount) - Number(soldTokenOutWei);
-      const newCollateralBalance = Number(offerCollateralBalance) + Number(collateralInWei);
+      const newCollateralBalance =
+        Number(offerCollateralBalance) + Number(collateralInWei);
       updateOffer(offerId, newSoldTokenAmount, newCollateralBalance);
+      if (deposit === null) {
+        // IF deposit does not exist, add deposit to store
+        const newDepositId = `${offerId}-${connectedAddress?.toLowerCase()}`;
+        const newDeposit: Deposit = {
+          id: newDepositId,
+          offerId,
+          participant: connectedAddress as string,
+          netCollateralAmount: Number(collateralInWei),
+        };
+        addDeposit(newDeposit);
+      } else {
+        // ELSE update existing deposit
+        const newNetCollateralBalance =
+          Number(deposit.netCollateralAmount) + Number(collateralInWei);
+        updateDeposit(deposit.id, newNetCollateralBalance);
+      }
       // Reset input
       setCollateralIn("0");
       // Update balance and allowance
