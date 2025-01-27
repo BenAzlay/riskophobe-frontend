@@ -17,7 +17,6 @@ import TransactionButton from "./TransactionButton";
 import { Deposit } from "@/utils/queries";
 import Tooltip from "./Tooltip";
 import TokenLogo from "./TokenLogo";
-import InfoModal from "./InfoModal";
 import { useAccount } from "wagmi";
 import dynamic from "next/dynamic";
 
@@ -25,6 +24,7 @@ const BuyModal = dynamic(() => import("./BuyModal"));
 const ReturnModal = dynamic(() => import("./ReturnModal"));
 const AddModal = dynamic(() => import("./AddModal"));
 const RemoveModal = dynamic(() => import("./RemoveModal"));
+const InfoModal = dynamic(() => import("./InfoModal"));
 
 interface OfferItemProps {
   offer: Offer;
@@ -105,9 +105,24 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
     [soldTokenAmount, soldToken.decimals]
   );
 
+  // Value in USD of all sold tokens remaining in offer
   const soldTokenAmountInUsdc = useMemo(
     () => new Decimal(formattedSoldTokenAmount).mul(soldToken.price).toString(),
     [formattedSoldTokenAmount, soldToken.price]
+  );
+
+  // Value in USD of 1 sold token in the offer
+  const pricePerSoldToken = useMemo(
+    () =>
+      new Decimal(collateralPerSoldToken).mul(collateralToken.price).toString(),
+    [collateralPerSoldToken, collateralToken.price]
+  );
+
+  // Percentage difference between USD sold token price in offer, and in market
+  const soldTokenMarketValueDifference = useMemo(
+    () =>
+      new Decimal(pricePerSoldToken).div(soldToken.price).mul(100).toString(),
+    [pricePerSoldToken, soldToken.price]
   );
 
   const userIsCreator = useMemo(
@@ -226,9 +241,59 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
             ({abbreviateAmount(soldTokenAmountInUsdc, "$", 2)})
           </Tooltip>
         </p>
+        <p className="inline-flex gap-1">
+          <span>
+            📈 {soldToken.symbol} price:{" "}
+            <Tooltip
+              message={`$${numberWithCommas(pricePerSoldToken)}/${
+                soldToken.symbol
+              }`}
+            >
+              <b className="font-semibold">
+                {abbreviateAmount(pricePerSoldToken, "$", 2)}
+              </b>
+            </Tooltip>{" "}
+            (
+            <Tooltip
+              message={`${numberWithCommas(
+                soldTokenMarketValueDifference
+              )}% of ${soldToken.symbol}'s market price`}
+            >
+              <b
+                className={`font-semibold ${
+                  new Decimal(soldTokenMarketValueDifference).gt(100)
+                    ? "text-error"
+                    : "text-success"
+                }`}
+              >
+                {abbreviateAmount(soldTokenMarketValueDifference, "", 2)}%
+              </b>
+            </Tooltip>
+            )
+          </span>
+          <InfoModal title="Offer vs Market Price Difference">
+            <p>
+              In an offer, a token is being sold at a potentially different
+              price from its market value. As its market price flucuates over
+              the offer's lifetime, it can go lower or higher than the price in
+              the offer.
+            </p>
+            <p>
+              The {soldToken.symbol} price for this offer is currently $
+              {numberWithCommas(pricePerSoldToken)}, which is{" "}
+              {numberWithCommas(soldTokenMarketValueDifference)}% of its market
+              price of ${numberWithCommas(soldToken.price)}.
+            </p>
+            <p>
+              💡 Tip: As a buyer, it might be worth buying {soldToken.symbol}{" "}
+              even if it is sold above its market price, diminishing your
+              potential upside in return for the diminishing your risk.
+            </p>
+          </InfoModal>
+        </p>
         <div className="inline-flex gap-1">
           🛡️ Money back: {moneyBackPercent}%
-          <InfoModal title="User fees">
+          <InfoModal title="User Fees">
             <p>
               On buying {soldToken.symbol}, you will pay a {feePercent}% fee on
               your {collateralToken.symbol}.
