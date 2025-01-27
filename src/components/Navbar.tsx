@@ -34,7 +34,7 @@ const Navbar: React.FC = () => {
       onClose={() => setLogoutDialogOpen(false)}
     >
       <div className="space-y-2">
-        <h6>You are connected to:</h6>
+        <p>You are connected to:</p>
         <div
           onClick={() =>
             window.open(

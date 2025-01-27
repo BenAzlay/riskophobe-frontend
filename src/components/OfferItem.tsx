@@ -172,9 +172,10 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
   return (
     <Fragment>
       <div className="offer-item">
-        <h6 className="text-primary text-lg font-bold text-center">
-          Buy {soldToken.symbol} for {collateralToken.symbol}
-        </h6>
+        <p className="text-secondary text-lg font-bold text-center">
+          <span>{soldToken.symbol}</span> for{" "}
+          <span>{collateralToken.symbol}</span>
+        </p>
         <p className="inline-flex gap-1">
           💱{" "}
           <span>

@@ -19,7 +19,7 @@ const BottomNav: React.FC = () => {
         {navLinks.map((link) => (
           <Link key={link.href} href={link.href}>
             <span
-              className={`navlink ${
+              className={`navlink bg-transparent ${
                 pathname === link.href ? "navlink-active" : ""
               }`}
             >
