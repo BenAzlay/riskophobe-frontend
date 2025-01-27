@@ -91,7 +91,6 @@ function App() {
           };
         })
         .filter(Boolean);
-      console.log(`offers:`, offers);
       setOffers(offers);
       offersHaveLoaded.current = true;
     } catch (e) {

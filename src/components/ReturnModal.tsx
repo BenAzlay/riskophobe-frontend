@@ -54,7 +54,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
 
   const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
-  const { offers, setOffers } = useStore();
+  const { updateOffer } = useStore();
 
   const [soldTokenIn, setSoldTokenIn] = useState<string>("0");
   const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
@@ -138,9 +138,8 @@ const ReturnModal: FC<ReturnModalProps> = ({
   };
   const soldTokenBalanceAndAllowanceSetter = ([newBalance, newAllowance]: [
     string,
-    string,
+    string
   ]): void => {
-    console.log(`newAllowance:`, newAllowance);
     setSoldTokenBalance(newBalance);
     setSoldTokenAllowance(newAllowance);
   };
@@ -199,21 +198,9 @@ const ReturnModal: FC<ReturnModalProps> = ({
     args: [BigInt(offerId), BigInt(collateralOutWei)],
     onSuccess: async () => {
       // Update offer collateralBalance and soldTokenAmount
-      const newOffers = offers.map((offer) => {
-        if (offer.id === offerId) {
-          const newCollateralBalance =
-            offer.collateralBalance - Number(collateralOutWei);
-          const newSoldTokenAmount =
-            offer.soldTokenAmount + Number(soldTokenInWei);
-          return {
-            ...offer,
-            collateralBalance: newCollateralBalance,
-            soldTokenAmount: newSoldTokenAmount,
-          };
-        }
-        return offer;
-      });
-      setOffers(newOffers);
+      const newSoldTokenAmount: number = Number(soldTokenAmount) + Number(soldTokenInWei);
+      const newCollateralBalance: number = Number(collateralBalance) - Number(collateralOutWei);
+      updateOffer(offerId, newSoldTokenAmount, newCollateralBalance);
       setSoldTokenIn("0");
       // Update sold token balance and allowance
       const payload = await soldTokenBalanceAndAllowanceGetter();
@@ -272,6 +259,7 @@ const ReturnModal: FC<ReturnModalProps> = ({
           max={Number(userMaxSoldTokenIn)}
           step={step}
           displayTooltip={(value) => `${value} ${soldToken.symbol}`}
+          disabled={returnTokensIsPending}
         />
         <svg
           xmlns="http://www.w3.org/2000/svg"

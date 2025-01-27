@@ -28,11 +28,11 @@ interface AddModalProps {
 }
 
 const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
-  const { id: offerId, soldToken } = offer;
+  const { id: offerId, soldToken, soldTokenAmount, collateralBalance } = offer;
 
   const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
-  const { offers, setOffers } = useStore();
+  const { updateOffer } = useStore();
 
   const [soldTokenBalance, setSoldTokenBalance] = useState<string>("0");
   const [soldTokenAllowance, setSoldTokenAllowance] = useState<string>("0");
@@ -132,18 +132,10 @@ const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
     args: [BigInt(offerId), BigInt(amountToAddWei)],
     onSuccess: async () => {
       // Update offer by increasing its soldTokenAmount
-      const newOffers = offers.map((offer) => {
-        if (offer.id === offerId) {
-          const newSoldTokenAmount =
-            offer.soldTokenAmount + Number(amountToAddWei);
-          return {
-            ...offer,
-            soldTokenAmount: newSoldTokenAmount,
-          };
-        }
-        return offer;
-      });
-      setOffers(newOffers);
+      const newSoldTokenAmount =
+            soldTokenAmount + Number(amountToAddWei);
+      updateOffer(offerId, newSoldTokenAmount, collateralBalance);
+      // Reset input
       setAmountToAdd("0");
       // Update balance & allowance
       const payload = await soldTokenBalanceAndAllowanceGetter();

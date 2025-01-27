@@ -227,7 +227,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
             ({abbreviateAmount(soldTokenAmountInUsdc, "$", 2)})
           </Tooltip>
         </p>
-        <p className="inline-flex gap-1">
+        <div className="inline-flex gap-1">
           <span>
             📈 {soldToken.symbol} price:{" "}
             <Tooltip
@@ -276,7 +276,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
               potential upside in return for the diminishing your risk.
             </p>
           </InfoModal>
-        </p>
+        </div>
         <div className="inline-flex gap-1">
           🛡️ Money back: {moneyBackPercent}%
           <InfoModal title="User Fees">

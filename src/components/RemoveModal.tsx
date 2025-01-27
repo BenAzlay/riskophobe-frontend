@@ -32,7 +32,7 @@ const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
 
   const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
-  const { offers, setOffers } = useStore();
+  const { deleteOffer } = useStore();
 
   const [txError, setTxError] = useState<string | null>(null);
 
@@ -67,8 +67,7 @@ const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
     args: [BigInt(offerId)],
     onSuccess: () => {
       // Remove the removed offer from offers
-      const newOffers = offers.filter((offer) => offer.id !== offerId);
-      setOffers(newOffers);
+      deleteOffer(offerId);
       // Close the modal
       onClose();
     },

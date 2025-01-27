@@ -10,9 +10,7 @@ import {
   convertQuantityToWei,
 } from "@/utils/utilFunc";
 import { ethers } from "ethers";
-import {
-  useAccount
-} from "wagmi";
+import { useAccount } from "wagmi";
 import { getTokenAllowance, getTokenBalance } from "@/utils/tokenMethods";
 import CONSTANTS from "@/utils/constants";
 import { useAsyncEffect } from "@/utils/customHooks";
@@ -43,12 +41,13 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
     startTime,
     endTime,
     soldTokenAmount,
+    collateralBalance: offerCollateralBalance,
     creator,
   } = offer;
 
   const { address: connectedAddress, chainId: connectedChainId } = useAccount();
 
-  const { offers, setOffers } = useStore();
+  const { updateOffer } = useStore();
 
   const [collateralIn, setCollateralIn] = useState<string>("0");
   const [collateralBalance, setCollateralBalance] = useState<string>("0");
@@ -135,7 +134,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
   };
   const collateralBalanceAndAllowanceSetter = ([newBalance, newAllowance]: [
     string,
-    string,
+    string
   ]): void => {
     setCollateralBalance(newBalance);
     setCollateralAllowance(newAllowance);
@@ -195,21 +194,11 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
     args: [BigInt(offerId), BigInt(collateralInWei), BigInt(0)],
     onSuccess: async () => {
       // Update offer collateralBalance and soldTokenAmount
-      const newOffers = offers.map((offer) => {
-        if (offer.id === offerId) {
-          const newCollateralBalance =
-            offer.collateralBalance + Number(collateralInWei);
-          const newSoldTokenAmount =
-            offer.soldTokenAmount - Number(soldTokenOutWei);
-          return {
-            ...offer,
-            collateralBalance: newCollateralBalance,
-            soldTokenAmount: newSoldTokenAmount,
-          };
-        }
-        return offer;
-      });
-      setOffers(newOffers);
+      const newSoldTokenAmount: number =
+        Number(soldTokenAmount) - Number(soldTokenOutWei);
+      const newCollateralBalance = Number(offerCollateralBalance) + Number(collateralInWei);
+      updateOffer(offerId, newSoldTokenAmount, newCollateralBalance);
+      // Reset input
       setCollateralIn("0");
       // Update balance and allowance
       const payload = await collateralBalanceAndAllowanceGetter();
@@ -266,6 +255,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer }) => {
           max={Number(userMaxCollateralIn)}
           step={step}
           displayTooltip={(value) => `${value} ${collateralToken.symbol}`}
+          disabled={buyTokensIsPending}
         />
         <svg
           xmlns="http://www.w3.org/2000/svg"

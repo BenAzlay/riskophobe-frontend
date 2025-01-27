@@ -11,6 +11,7 @@ interface RangeSliderProps {
   step: number;
   tokenSymbol?: string;
   displayTooltip?: (value: number) => string;
+  disabled?: boolean;
 }
 
 const RangeSlider: React.FC<RangeSliderProps> = ({
@@ -21,6 +22,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
   step,
   displayTooltip = (value) => `${value}`,
   tokenSymbol,
+  disabled = false,
 }) => {
   const [isHovering, setIsHovering] = useState(false);
 
@@ -54,6 +56,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
           }}
           onMouseEnter={() => handleMouseEvents(true)}
           onMouseLeave={() => handleMouseEvents(false)}
+          disabled={disabled}
         />
         <div
           className="absolute flex flex-col items-center pointer-events-none transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
