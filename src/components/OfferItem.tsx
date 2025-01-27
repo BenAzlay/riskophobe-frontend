@@ -8,6 +8,7 @@ import {
   convertQuantityFromWei,
   convertQuantityToWei,
   formatDuration,
+  numberWithCommas,
 } from "@/utils/utilFunc";
 import Decimal from "decimal.js";
 import { FC, Fragment, memo, useMemo, useState } from "react";
@@ -102,6 +103,11 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
   const formattedSoldTokenAmount = useMemo(
     () => convertQuantityFromWei(soldTokenAmount, soldToken.decimals),
     [soldTokenAmount, soldToken.decimals]
+  );
+
+  const soldTokenAmountInUsdc = useMemo(
+    () => new Decimal(formattedSoldTokenAmount).mul(soldToken.price).toString(),
+    [formattedSoldTokenAmount, soldToken.price]
   );
 
   const userIsCreator = useMemo(
@@ -215,6 +221,9 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
           {soldToken.symbol} remaining:
           <Tooltip message={`${formattedSoldTokenAmount} ${soldToken.symbol}`}>
             {abbreviateAmount(formattedSoldTokenAmount, "", 2)}
+          </Tooltip>
+          <Tooltip message={`$${numberWithCommas(soldTokenAmountInUsdc)}`}>
+            ({abbreviateAmount(soldTokenAmountInUsdc, "$", 2)})
           </Tooltip>
         </p>
         <div className="inline-flex gap-1">
