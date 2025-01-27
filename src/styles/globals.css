@@ -21,9 +21,9 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  background-image: url("/Riskophobe_Background.png"); /* Path to your image */
-  background-size: cover; /* Ensures the image covers the entire viewport */
-  background-repeat: repeat; /* Make the image repeat */
+  background-image: url("/Riskophobe_Background.png");
+  background-size: cover;
+  background-repeat: repeat;
   min-height: 100vh;
 }
 
