@@ -69,6 +69,8 @@ const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
       // Remove the removed offer from offers
       const newOffers = offers.filter((offer) => offer.id !== offerId);
       setOffers(newOffers);
+      // Close the modal
+      onClose();
     },
     onError: (errorMessage) => {
       setTxError(errorMessage);
