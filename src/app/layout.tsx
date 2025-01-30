@@ -7,14 +7,16 @@ import ConnectWalletModal from "@/components/ConnectWalletModal";
 import ClientProviders from "./ClientProviders";
 import DisclaimerModal from "@/components/DisclaimerModal";
 import DisclaimerWrapper from "@/components/DisclaimerWrapper";
+import { Metadata, Viewport } from "next";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Riskophobe | Options for Crypto",
   description: "Invest in Tokens Risk-Free. Return it anytime. Get Money Back.",
   keywords:
     "crypto options, Ethereum options, DeFi, risk-free investing, Base, DeFi, decentralized finance",
+  metadataBase: new URL("https://riskophobe.com"),
   openGraph: {
     title: "Riskophobe | Options for Crypto",
     description:
@@ -38,11 +40,9 @@ export const metadata = {
     title: "Riskophobe | Options for Crypto",
     description:
       "Invest in Tokens Risk-Free. Return it anytime. Get Money Back.",
+    images: ["/og-image.png"],
   },
-  themeColor: "#6B46C1", // Set your brand's primary theme color
-  viewport:
-    "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no",
-  robots: "index, follow", // Allows indexing and crawling by search engines
+  robots: "index, follow",
   icons: {
     icon: "/favicon.ico",
     apple: "/icons/apple-touch-icon.png",
@@ -55,7 +55,9 @@ export const metadata = {
   category: "Finance, Decentralized Finance",
 };
 
-export const viewport = "width=device-width, initial-scale=1";
+export const viewport: Viewport = {
+  themeColor: "#6B46C1",
+};
 
 export default function RootLayout({
   children,
