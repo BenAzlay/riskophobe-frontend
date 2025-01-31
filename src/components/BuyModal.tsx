@@ -276,7 +276,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer, deposit }) => {
           displayTooltip={(value) => `${value} ${collateralToken.symbol}`}
           disabled={buyTokensIsPending}
         />
-        <div className="items-center space-y-2">
+        <div className="space-y-2 center justify-items-center">
           <div className="text-center">
             <p className="text-sm text-gray-500">Deposit:</p>
             <p className="text-gray-100 font-bold">
