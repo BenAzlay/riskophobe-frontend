@@ -263,7 +263,7 @@ const Sell = () => {
   };
   const soldTokenBalanceAndAllowanceSetter = ([newBalance, newAllowance]: [
     string,
-    string,
+    string
   ]): void => {
     setSoldTokenBalance(newBalance);
     setSoldTokenAllowance(newAllowance);
@@ -274,6 +274,34 @@ const Sell = () => {
     soldTokenBalanceAndAllowanceSetter,
     [connectedAddress, soldToken?.address]
   );
+
+  const handleSoldTokenChange = (token: ERC20Token) => {
+    setSoldToken(token);
+
+    // If selected soldToken matches collateralToken, change collateralToken
+    if (token.address === collateralToken?.address) {
+      const alternativeToken = tokensList.find(
+        (t) => t.address !== token.address
+      );
+      if (alternativeToken) {
+        setCollateralToken(alternativeToken);
+      }
+    }
+  };
+
+  const handleCollateralTokenChange = (token: ERC20Token) => {
+    setCollateralToken(token);
+
+    // If selected collateralToken matches soldToken, change soldToken
+    if (token.address === soldToken?.address) {
+      const alternativeToken = tokensList.find(
+        (t) => t.address !== token.address
+      );
+      if (alternativeToken) {
+        setSoldToken(alternativeToken);
+      }
+    }
+  };
 
   const onChangeStartDate = (_startDate: Date | null) => {
     if (!_startDate) return;
@@ -381,7 +409,7 @@ const Sell = () => {
               <TokensDropdown
                 tokens={tokensList}
                 selectedToken={soldToken}
-                onSelectToken={(token) => setSoldToken(token)}
+                onSelectToken={handleSoldTokenChange}
               />
             }
           />
@@ -398,7 +426,7 @@ const Sell = () => {
               <TokensDropdown
                 tokens={tokensList}
                 selectedToken={collateralToken}
-                onSelectToken={(token) => setCollateralToken(token)}
+                onSelectToken={handleCollateralTokenChange}
               />
             }
           />
