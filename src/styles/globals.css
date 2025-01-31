@@ -88,3 +88,7 @@ input[type="range"]::-ms-thumb {
 .offer-item {
   @apply flex flex-col gap-2 transition rounded-md p-4 border-2 border-primary hover:border-secondary bg-[#1E1E1EA0];
 }
+
+.slider-label {
+  @apply text-sm font-medium text-gray-100;
+}

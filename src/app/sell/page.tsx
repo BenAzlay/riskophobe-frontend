@@ -34,6 +34,7 @@ import DateRangePicker from "@/components/DateRangePicker";
 import Tooltip from "@/components/Tooltip";
 import useContractTransaction from "@/utils/useContractTransaction";
 import { useAccount } from "wagmi";
+import useIsMobile from "@/utils/useIsMobile";
 
 const ClientOnlyDate = dynamic(() => import("@/components/ClientOnlyDate"), {
   ssr: false,
@@ -46,6 +47,8 @@ const oneMonthFromNow: Date = new Date(
 
 const Sell = () => {
   const { address: connectedAddress, chainId: connectedChainId } = useAccount();
+
+  const isMobile = useIsMobile();
 
   const currentTs = useCurrentTimestamp();
 
@@ -449,6 +452,10 @@ const Sell = () => {
             onChange={(newValue) => setCreatorFee(newValue)}
             displayTooltip={(value) => `${value}%`}
           />
+          {/* Show percentage explicitly on mobile, because slider hover won't show */}
+          {isMobile ? (
+            <p className="text-gray-100 text-center font-bold">{creatorFee}%</p>
+          ) : null}
         </div>
         {/* Dates */}
         <div className="space-y-2">
