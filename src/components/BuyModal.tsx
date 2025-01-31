@@ -265,7 +265,7 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer, deposit }) => {
       onClose={onClose}
     >
       <div className="flex flex-col gap-4 items-center">
-        <label className="block text-sm font-medium">Collateral to spend</label>
+        <label className="block text-sm font-medium">Select collateral {collateralToken.symbol} to deposit</label>
         <RangeSlider
           value={Number(collateralIn)}
           onChange={handleCollateralInChange}
@@ -276,23 +276,34 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer, deposit }) => {
           displayTooltip={(value) => `${value} ${collateralToken.symbol}`}
           disabled={buyTokensIsPending}
         />
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="size-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
-          />
-        </svg>
-        <p>
-          {soldTokenOut} {soldToken.symbol}
-        </p>
+        <div className="items-center space-y-2">
+          <div className="text-center">
+            <p className="text-sm text-gray-500">Deposit:</p>
+            <p className="text-gray-100 font-bold">
+              {collateralIn} {collateralToken.symbol}
+            </p>
+          </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="size-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
+            />
+          </svg>
+          <div className="text-center">
+            <p className="text-sm text-gray-500">Receive:</p>
+            <p className="text-gray-100 font-bold">
+              {soldTokenOut} {soldToken.symbol}
+            </p>
+          </div>
+        </div>
         {transactionButton()}
       </div>
     </Modal>
