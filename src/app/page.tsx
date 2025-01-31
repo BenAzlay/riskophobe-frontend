@@ -337,7 +337,7 @@ function App() {
             <h1 className="text-3xl sm:text-5xl font-bold font-nimbus text-primary">
               Invest Risk-Free. Get Money Back.
             </h1>
-            <h2 className="text-xl sm:text-2xl font-semibold text-left">
+            <h2 className="text-lg sm:text-xl font-semibold text-left text-gray-100">
               🤩 Choose a token to invest in
               <br />
               😇 Return it if the price drops
