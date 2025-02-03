@@ -331,7 +331,7 @@ function App() {
 
   return (
     <Fragment>
-      <div className="hero bg-[#15131ACC]">
+      <div className="hero glass-bg">
         <div className="hero-content text-center">
           <div className="space-y-6 justify-items-center">
             <h1 className="text-3xl sm:text-5xl font-bold font-nimbus text-primary">
