@@ -171,7 +171,7 @@ const OfferItem: FC<OfferItemProps> = ({ offer }) => {
 
   return (
     <Fragment>
-      <div className="offer-item">
+      <div className="offer-item glass-bg">
         <p className="text-secondary text-lg font-bold text-center">
           <span>{soldToken.symbol}</span> for{" "}
           <span>{collateralToken.symbol}</span>

@@ -341,7 +341,7 @@ const Sell = () => {
   );
 
   const offerSummary = () => (
-    <div className="collapse  collapse-arrow border-2 border-primary rounded-md bg-[#6B46C120]">
+    <div className="collapse  collapse-arrow border-2 border-primary rounded-md glass-bg">
       <input type="checkbox" />
       <div className="collapse-title text-xl font-medium">Offer summary</div>
       <div className="collapse-content">{offerSummaryContent()}</div>
@@ -349,7 +349,7 @@ const Sell = () => {
   );
 
   const errorsBox = () => (
-    <div className="border-2 border-error rounded-md bg-[#E53E3E20] text-red-300 font-semibold px-2 py-2">
+    <div className="border-2 border-error rounded-md glass-bg bg-[#E53E3E20] text-red-300 font-semibold px-2 py-2">
       {formErrors.map((formError, index) => (
         <p key={index}>{formError}</p>
       ))}
@@ -396,7 +396,7 @@ const Sell = () => {
       </h1>
       <div
         id="form"
-        className="space-y-4 max-w-lg border-2 rounded-md border-primary p-2 sm:p-4 w-full overflow-hidden bg-[#1E1E1EA0]"
+        className="space-y-4 max-w-lg border-2 rounded-md border-primary p-2 sm:p-4 w-full overflow-hidden glass-bg"
       >
         <div className="space-y-2">
           <label className="field-title">What do you want to sell?</label>

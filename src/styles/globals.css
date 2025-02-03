@@ -4,8 +4,7 @@
 
 @font-face {
   font-family: "Nimbus";
-  src:
-    url("/fonts/NimbusRomNo9L-Med.otf") format("otf"),
+  src: url("/fonts/NimbusRomNo9L-Med.otf") format("otf"),
     url("/fonts/NimbusRomNo9L-MedIta.otf") format("otf"),
     url("/fonts/NimbusRomNo9L-Reg.otf") format("otf"),
     url("/fonts/NimbusRomNo9L-RegIta.otf") format("otf");
@@ -86,7 +85,21 @@ input[type="range"]::-ms-thumb {
 }
 
 .offer-item {
-  @apply flex flex-col gap-2 transition rounded-md p-4 border-2 border-primary hover:border-secondary bg-[#1E1E1EA0];
+  @apply flex flex-col gap-2 rounded-md p-4 border-2 border-primary;
+
+  transition-property: box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 250ms;
+}
+
+.glass-bg {
+  @apply bg-[#1E1E1E20];
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.offer-item:hover {
+  box-shadow: 0 0 15px #6b46c1;
 }
 
 .slider-label {
