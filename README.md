@@ -38,7 +38,7 @@ Ensure you have the following installed:
 
 ```bash
 # Clone the repository
-$ git clone https://github.com/your-repo/riskophobe.git
+$ git clone https://github.com/BenAzlay/riskophobe-frontend.git
 
 # Navigate to the project directory
 $ cd riskophobe
