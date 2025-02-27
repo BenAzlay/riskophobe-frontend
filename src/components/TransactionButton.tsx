@@ -1,20 +1,18 @@
-import { FC } from "react";
-
 interface TransactionButtonProps {
   onClickAction: () => void;
+  children: React.ReactNode; // Content passed as children
   disabled?: boolean;
   loading?: boolean;
   errorMessage?: string | null;
-  children: React.ReactNode; // Content passed as children
 }
 
-const TransactionButton: FC<TransactionButtonProps> = ({
+const TransactionButton = ({
   onClickAction,
   children,
   disabled = false,
   loading = false,
   errorMessage = null,
-}) => {
+}: TransactionButtonProps) => {
   return (
     <div className="space-y-2 w-full">
       <button

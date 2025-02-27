@@ -21,11 +21,11 @@ const formatDate = (date: Date | null): string => {
   return date.toLocaleDateString("en-GB", options).replace(", ", ", ");
 };
 
-const DateRangePicker: React.FC<DateRangePickerProps> = ({
+const DateRangePicker = ({
   onChange,
   defaultStartDate,
   defaultEndDate,
-}) => {
+}: DateRangePickerProps) => {
   const [startDate, setStartDate] = useState<Date | null>(defaultStartDate);
   const [endDate, setEndDate] = useState<Date | null>(defaultEndDate);
 

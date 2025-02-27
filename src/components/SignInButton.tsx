@@ -1,10 +1,9 @@
 "use client";
 
 import useStore from "@/store/useStore";
-import React from "react";
 import TransactionButton from "./TransactionButton";
 
-const SignInButton: React.FC = () => {
+const SignInButton = () => {
   const { setWalletDialogOpen } = useStore();
 
   return (

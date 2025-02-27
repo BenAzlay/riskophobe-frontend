@@ -1,13 +1,15 @@
-import { FC } from "react";
-
 interface TokenSymbolAndLogoProps {
   symbol: string | undefined;
-  size: number;
+  size?: number;
   className?: string;
 }
 
-const TokenLogo: FC<TokenSymbolAndLogoProps> = ({ symbol, size = 20, className }) => {
-  const logo: string = `/tokenLogos/${symbol ?? 'NOTFOUND'}.png`;
+const TokenLogo = ({
+  symbol,
+  size = 20,
+  className = "",
+}: TokenSymbolAndLogoProps) => {
+  const logo: string = `/tokenLogos/${symbol ?? "NOTFOUND"}.png`;
 
   return (
     <img

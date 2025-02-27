@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
 import {
@@ -33,7 +33,7 @@ interface BuyModalProps {
   deposit: Deposit | null;
 }
 
-const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer, deposit }) => {
+const BuyModal = ({ visible, onClose, offer, deposit }: BuyModalProps) => {
   const {
     id: offerId,
     soldToken,
@@ -265,7 +265,9 @@ const BuyModal: FC<BuyModalProps> = ({ visible, onClose, offer, deposit }) => {
       onClose={onClose}
     >
       <div className="flex flex-col gap-4 items-center">
-        <label className="block text-sm font-medium">Select collateral {collateralToken.symbol} to deposit</label>
+        <label className="block text-sm font-medium">
+          Select collateral {collateralToken.symbol} to deposit
+        </label>
         <RangeSlider
           value={Number(collateralIn)}
           onChange={handleCollateralInChange}

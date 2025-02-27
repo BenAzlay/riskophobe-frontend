@@ -10,7 +10,7 @@ import {
   numberWithCommas,
 } from "@/utils/utilFunc";
 import Decimal from "decimal.js";
-import { FC, Fragment, memo, useMemo, useState } from "react";
+import { Fragment, memo, useMemo, useState } from "react";
 import useStore from "@/store/useStore";
 import TransactionButton from "./TransactionButton";
 import { Deposit } from "@/utils/queries";
@@ -29,7 +29,7 @@ interface OfferItemProps {
   offer: Offer;
 }
 
-const OfferItem: FC<OfferItemProps> = ({ offer }) => {
+const OfferItem = ({ offer }: OfferItemProps) => {
   const { deposits } = useStore();
 
   const [buyModalOpen, setBuyModalOpen] = useState(false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
 import { convertQuantityFromWei } from "@/utils/utilFunc";
@@ -21,7 +21,7 @@ interface RemoveModalProps {
   offer: Offer;
 }
 
-const RemoveModal: FC<RemoveModalProps> = ({ visible, onClose, offer }) => {
+const RemoveModal = ({ visible, onClose, offer }: RemoveModalProps) => {
   const {
     id: offerId,
     soldToken,

@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
 import {
   abbreviateAmount,
@@ -26,7 +26,7 @@ interface ClaimModalProps {
   creatorFee: CreatorFee;
 }
 
-const ClaimModal: FC<ClaimModalProps> = ({ visible, onClose, creatorFee }) => {
+const ClaimModal = ({ visible, onClose, creatorFee }: ClaimModalProps) => {
   const { id: feeId, token, amount: maxClaimAmountWei } = creatorFee;
 
   const { address: connectedAddress, chainId: connectedChainId } = useAccount();

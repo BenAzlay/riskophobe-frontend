@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface FilterOption {
   id: string;
@@ -13,12 +13,12 @@ interface FiltersDropdownProps {
   prefix: string;
 }
 
-const FiltersDropdown: FC<FiltersDropdownProps> = ({
+const FiltersDropdown = ({
   options,
   selectedOption,
   onSelectOption,
   prefix = "Sort by",
-}) => {
+}: FiltersDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

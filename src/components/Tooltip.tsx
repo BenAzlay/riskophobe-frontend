@@ -1,11 +1,11 @@
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 
 interface TooltipProps {
   message: string;
   children: ReactNode;
 }
 
-const Tooltip: React.FC<TooltipProps> = ({ message, children }) => {
+const Tooltip = ({ message, children }: TooltipProps) => {
   return (
     <span className="relative inline-block">
       <span className="group inline-block">

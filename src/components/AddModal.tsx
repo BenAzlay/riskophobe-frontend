@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
 import { convertQuantityFromWei, convertQuantityToWei } from "@/utils/utilFunc";
@@ -27,7 +27,7 @@ interface AddModalProps {
   offer: Offer;
 }
 
-const AddModal: FC<AddModalProps> = ({ visible, onClose, offer }) => {
+const AddModal = ({ visible, onClose, offer }: AddModalProps) => {
   const { id: offerId, soldToken, soldTokenAmount, collateralBalance } = offer;
 
   const { address: connectedAddress, chainId: connectedChainId } = useAccount();

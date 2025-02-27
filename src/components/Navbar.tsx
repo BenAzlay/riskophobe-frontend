@@ -10,7 +10,7 @@ import { addressShorten } from "@/utils/utilFunc";
 import TransactionButton from "./TransactionButton";
 import useIsMobile from "@/utils/useIsMobile";
 
-const Navbar: React.FC = () => {
+const Navbar = () => {
   const { setWalletDialogOpen } = useStore();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const { address: connectedAddress } = useAccount();

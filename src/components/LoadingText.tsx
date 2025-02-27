@@ -3,8 +3,10 @@ import { useEffect, useRef, useState } from "react";
 const specialCharacters: string[] = ["@", "#", "$", "%", "^", "&", "!", "?"];
 
 const generateRandomString = (length: number): string[] => {
-  return Array.from({ length }, () =>
-    specialCharacters[Math.floor(Math.random() * specialCharacters.length)]
+  return Array.from(
+    { length },
+    () =>
+      specialCharacters[Math.floor(Math.random() * specialCharacters.length)]
   );
 };
 
@@ -14,7 +16,11 @@ interface LoadingTextProps {
   initialLength?: number;
 }
 
-const LoadingText: React.FC<LoadingTextProps> = ({ speed = 100, length = 4, initialLength = 1 }) => {
+const LoadingText = ({
+  speed = 100,
+  length = 4,
+  initialLength = 1,
+}: LoadingTextProps) => {
   const [isClient, setIsClient] = useState(false); // Track whether the component is mounted
   const displayLengthRef = useRef<number>(initialLength);
   const [displayText, setDisplayText] = useState<string[]>([]);

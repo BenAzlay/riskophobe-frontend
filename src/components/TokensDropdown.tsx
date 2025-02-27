@@ -1,5 +1,5 @@
 import ERC20Token from "@/app/types/ERC20Token";
-import { FC, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import TokenSymbolAndLogo from "./TokenSymbolAndLogo";
 import { compareEthereumAddresses } from "@/utils/utilFunc";
 
@@ -9,11 +9,11 @@ interface TokensDropdownProps {
   onSelectToken: (token: ERC20Token) => void;
 }
 
-const TokensDropdown: FC<TokensDropdownProps> = ({
+const TokensDropdown = ({
   tokens,
   selectedToken,
   onSelectToken,
-}) => {
+}: TokensDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

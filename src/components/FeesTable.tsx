@@ -1,5 +1,5 @@
 import CreatorFee from "@/app/types/CreatorFee";
-import React, { useState } from "react";
+import { useState } from "react";
 import TokenSymbolAndLogo from "./TokenSymbolAndLogo";
 import {
   abbreviateAmount,
@@ -8,12 +8,12 @@ import {
 } from "@/utils/utilFunc";
 import Tooltip from "./Tooltip";
 
-type Props = {
+type FeesTableProps = {
   creatorFees: CreatorFee[];
   onSelectFee: (fee: CreatorFee) => void;
 };
 
-const FeesTable: React.FC<Props> = ({ creatorFees, onSelectFee }) => {
+const FeesTable = ({ creatorFees, onSelectFee }: FeesTableProps) => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const handleSort = () => {

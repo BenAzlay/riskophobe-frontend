@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
 import { base } from "viem/chains";
 import { useSwitchChain } from "wagmi";
 
-const SwitchChainButton: React.FC = () => {
+const SwitchChainButton = () => {
   const { switchChain } = useSwitchChain();
 
   return (

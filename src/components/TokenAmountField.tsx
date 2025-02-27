@@ -1,5 +1,5 @@
 import { abbreviateAmount, numberWithCommas } from "@/utils/utilFunc";
-import { FC, ReactNode } from "react";
+import { ReactNode } from "react";
 import Tooltip from "./Tooltip";
 import LoadingText from "./LoadingText";
 
@@ -15,7 +15,7 @@ interface TokenAmountFieldProps {
   balanceIsLoading?: boolean;
 }
 
-const TokenAmountField: FC<TokenAmountFieldProps> = ({
+const TokenAmountField = ({
   amount,
   tokenComponent,
   onChangeAmount,
@@ -25,7 +25,7 @@ const TokenAmountField: FC<TokenAmountFieldProps> = ({
   placeholder = "Amount",
   tokenPrice = 1, // Default token price, replace with actual value
   balanceIsLoading = false,
-}) => {
+}: TokenAmountFieldProps) => {
   const usdValue = parseFloat(amount || "0") * tokenPrice;
 
   // Validate and handle input change
@@ -51,7 +51,7 @@ const TokenAmountField: FC<TokenAmountFieldProps> = ({
       <div className="flex justify-between items-center mt-2 text-sm text-gray-400 gap-2">
         <div className="text-left text-ellipsis overflow-hidden">
           <Tooltip message={`$${numberWithCommas(usdValue)}`}>
-            {abbreviateAmount(usdValue, '$', 2)}
+            {abbreviateAmount(usdValue, "$", 2)}
           </Tooltip>
           <span></span>
         </div>
@@ -61,7 +61,12 @@ const TokenAmountField: FC<TokenAmountFieldProps> = ({
             onClick={() => onChangeAmount(tokenBalance)}
           >
             <p>
-              {balanceLabel}: {!balanceIsLoading ? abbreviateAmount(tokenBalance, "", 3) : <LoadingText />}
+              {balanceLabel}:{" "}
+              {!balanceIsLoading ? (
+                abbreviateAmount(tokenBalance, "", 3)
+              ) : (
+                <LoadingText />
+              )}
             </p>
           </div>
         )}

@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
 import {
@@ -31,12 +31,12 @@ interface ReturnModalProps {
   deposit: Deposit;
 }
 
-const ReturnModal: FC<ReturnModalProps> = ({
+const ReturnModal = ({
   visible,
   onClose,
   offer,
   deposit,
-}) => {
+}: ReturnModalProps) => {
   const {
     id: offerId,
     soldToken,

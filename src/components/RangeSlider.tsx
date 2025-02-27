@@ -14,7 +14,7 @@ interface RangeSliderProps {
   disabled?: boolean;
 }
 
-const RangeSlider: React.FC<RangeSliderProps> = ({
+const RangeSlider = ({
   value,
   onChange,
   min,
@@ -23,7 +23,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
   displayTooltip = (value) => `${value}`,
   tokenSymbol,
   disabled = false,
-}) => {
+}: RangeSliderProps) => {
   const [isHovering, setIsHovering] = useState(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {

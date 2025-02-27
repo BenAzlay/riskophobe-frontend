@@ -1,11 +1,11 @@
-import React, { Fragment, ReactNode, useEffect, useRef, useState } from "react";
+import { Fragment, ReactNode, useEffect, useRef, useState } from "react";
 
 type InfoModalProps = {
   children: ReactNode;
   title?: string;
 };
 
-const InfoModal: React.FC<InfoModalProps> = ({ children, title }) => {
+const InfoModal = ({ children, title }: InfoModalProps) => {
   const modalRef = useRef<HTMLDialogElement>(null);
   const [visible, setVisible] = useState<boolean>(false);
 

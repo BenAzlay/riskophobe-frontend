@@ -3,9 +3,8 @@
 import { Connector, useConnect, useDisconnect } from "wagmi";
 import useStore from "@/store/useStore";
 import Modal from "@/components/Modal";
-import { FC } from "react";
 
-const ConnectWalletModal: FC = () => {
+const ConnectWalletModal = () => {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const { walletDialogOpen, setWalletDialogOpen } = useStore();

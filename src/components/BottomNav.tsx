@@ -1,10 +1,10 @@
 "use client";
 
-import React, { Fragment } from "react";
+import { Fragment } from "react";
 import { usePathname } from "next/navigation"; // For detecting active route
 import Link from "next/link"; // For client-side navigation
 
-const BottomNav: React.FC = () => {
+const BottomNav = () => {
   const pathname = usePathname(); // Detect the current route
 
   const navLinks = [

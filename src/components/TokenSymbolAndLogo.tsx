@@ -1,4 +1,3 @@
-import { FC } from "react";
 import TokenLogo from "./TokenLogo";
 import LoadingText from "./LoadingText";
 
@@ -6,7 +5,7 @@ interface TokenSymbolAndLogoProps {
   symbol: string | undefined;
 }
 
-const TokenSymbolAndLogo: FC<TokenSymbolAndLogoProps> = ({ symbol }) => {
+const TokenSymbolAndLogo = ({ symbol }: TokenSymbolAndLogoProps) => {
   return (
     <div className="inline-flex gap-2 items-center shrink-0">
       <TokenLogo symbol={symbol} size={20} />
