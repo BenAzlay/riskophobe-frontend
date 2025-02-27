@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
 import {
@@ -112,16 +112,22 @@ const BuyModal = ({ visible, onClose, offer, deposit }: BuyModalProps) => {
     return new Decimal(collateralAllowance).gte(collateralInWei);
   }, [collateralInWei, collateralAllowance]);
 
-  const getCollateralBalance = async () =>
-    await getTokenBalance(collateralToken?.address, connectedAddress);
-  const getCollateralAllowance = async () =>
-    await getTokenAllowance(
-      collateralToken?.address,
-      connectedAddress,
-      CONSTANTS.RISKOPHOBE_CONTRACT
-    );
+  const getCollateralBalance = useCallback(
+    async () =>
+      await getTokenBalance(collateralToken?.address, connectedAddress),
+    [collateralToken?.address, connectedAddress]
+  );
+  const getCollateralAllowance = useCallback(
+    async () =>
+      await getTokenAllowance(
+        collateralToken?.address,
+        connectedAddress,
+        CONSTANTS.RISKOPHOBE_CONTRACT
+      ),
+    [collateralToken?.address, connectedAddress]
+  );
 
-  const collateralBalanceAndAllowanceGetter = async (): Promise<
+  const collateralBalanceAndAllowanceGetter = useCallback(async (): Promise<
     [string, string]
   > => {
     if (!ethers.isAddress(connectedAddress))
@@ -132,14 +138,19 @@ const BuyModal = ({ visible, onClose, offer, deposit }: BuyModalProps) => {
       getCollateralBalance(),
       getCollateralAllowance(),
     ]);
-  };
-  const collateralBalanceAndAllowanceSetter = ([newBalance, newAllowance]: [
-    string,
-    string
-  ]): void => {
-    setCollateralBalance(newBalance);
-    setCollateralAllowance(newAllowance);
-  };
+  }, [
+    connectedAddress,
+    collateralToken?.address,
+    getCollateralBalance,
+    getCollateralAllowance,
+  ]);
+  const collateralBalanceAndAllowanceSetter = useCallback(
+    ([newBalance, newAllowance]: [string, string]): void => {
+      setCollateralBalance(newBalance);
+      setCollateralAllowance(newAllowance);
+    },
+    []
+  );
   useAsyncEffect(
     collateralBalanceAndAllowanceGetter,
     collateralBalanceAndAllowanceSetter,

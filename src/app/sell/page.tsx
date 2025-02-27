@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo, Fragment, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  Fragment,
+  useRef,
+  useCallback,
+} from "react";
 import {
   abbreviateAmount,
   calculateCollateralPerOneSoldToken,
@@ -33,7 +40,7 @@ import dynamic from "next/dynamic";
 import DateRangePicker from "@/components/DateRangePicker";
 import Tooltip from "@/components/Tooltip";
 import useContractTransaction from "@/utils/useContractTransaction";
-import { useAccount } from "wagmi";
+import { useAccount, useCall } from "wagmi";
 import useIsMobile from "@/utils/useIsMobile";
 
 const ClientOnlyDate = dynamic(() => import("@/components/ClientOnlyDate"), {
@@ -244,16 +251,18 @@ const Sell = () => {
     getAndSetTokensList();
   }, []);
 
-  const getSoldTokenBalance = async () =>
-    await getTokenBalance(soldToken?.address, connectedAddress);
-  const getSoldTokenAllowance = async () =>
+  const getSoldTokenBalance = useCallback(
+    async () => await getTokenBalance(soldToken?.address, connectedAddress),
+    [soldToken?.address, connectedAddress]
+  );
+  const getSoldTokenAllowance = useCallback(async () =>
     await getTokenAllowance(
       soldToken?.address,
       connectedAddress,
       CONSTANTS.RISKOPHOBE_CONTRACT
-    );
+    ), [soldToken?.address, connectedAddress]);
 
-  const soldTokenBalanceAndAllowanceGetter = async (): Promise<
+  const soldTokenBalanceAndAllowanceGetter = useCallback(async (): Promise<
     [string, string]
   > => {
     if (!ethers.isAddress(connectedAddress))
@@ -261,15 +270,20 @@ const Sell = () => {
     if (!ethers.isAddress(soldToken?.address)) throw new Error("No sold token");
     soldTokenBalanceIsLoaded.current = false;
     return await Promise.all([getSoldTokenBalance(), getSoldTokenAllowance()]);
-  };
-  const soldTokenBalanceAndAllowanceSetter = ([newBalance, newAllowance]: [
-    string,
-    string
-  ]): void => {
-    setSoldTokenBalance(newBalance);
-    setSoldTokenAllowance(newAllowance);
-    soldTokenBalanceIsLoaded.current = true;
-  };
+  }, [
+    connectedAddress,
+    soldToken?.address,
+    getSoldTokenBalance,
+    getSoldTokenAllowance,
+  ]);
+  const soldTokenBalanceAndAllowanceSetter = useCallback(
+    ([newBalance, newAllowance]: [string, string]): void => {
+      setSoldTokenBalance(newBalance);
+      setSoldTokenAllowance(newAllowance);
+      soldTokenBalanceIsLoaded.current = true;
+    },
+    []
+  );
   useAsyncEffect(
     soldTokenBalanceAndAllowanceGetter,
     soldTokenBalanceAndAllowanceSetter,

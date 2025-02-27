@@ -38,50 +38,70 @@ export const useAsyncEffect = <T>(
       isCancelled = true;
       controller.abort();
     };
-  }, dependencies);
+  }, dependencies); // Note: Memoize asyncGetterMethod and setterMethod with useCallback for optimal performance.
 };
 
 /**
- * Same functionality as useAsyncEffect, but will not trigger if the page is out of focus.
- * Triggers when the page is focused again.
+ * Custom useEffect hook that runs an async operation only when the page is visible.
+ * Triggers when the page becomes visible again after being hidden.
+ * @template T - The type of the data returned by the async method.
+ * @param asyncGetterMethod - A function returning a Promise, optionally accepting an AbortSignal.
+ * @param setterMethod - A callback to set the fetched data.
+ * @param dependencies - Dependency array to trigger the effect.
+ * @param options - Configuration for error handling and initial fetch.
  */
 export const useVisibilityEffect = <T>(
-  asyncGetterMethod: () => Promise<T>,
+  asyncGetterMethod: (signal?: AbortSignal) => Promise<T>,
   setterMethod: (value: T) => void,
-  dependencies: unknown[]
+  dependencies: unknown[],
+  options: {
+    onError?: (error: unknown) => void;
+    skipInitialCall?: boolean;
+  } = {}
 ): void => {
   useEffect(() => {
     let isCancelled = false;
+    const controller = new AbortController();
 
-    const callback = async () => {
-      const payload = await asyncGetterMethod();
-      if (!isCancelled) {
-        setterMethod(payload);
+    const fetchData = async () => {
+      try {
+        const payload = await asyncGetterMethod(controller.signal);
+        if (!isCancelled) {
+          setterMethod(payload);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          if (options.onError) {
+            options.onError(error);
+          } else if (process.env.NODE_ENV !== "production") {
+            console.error("Unhandled error in useVisibilityEffect:", error);
+          }
+        }
       }
     };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
-        isCancelled = true; // Stop making the request if the app is out of focus
+        isCancelled = true;
+        controller.abort(); // Cancel any in-flight request
       } else {
-        isCancelled = false; // Resume making the request when the app is in focus
-        if (!isCancelled && document.visibilityState === "visible") {
-          callback();
-        }
+        isCancelled = false;
+        fetchData(); // Trigger fetch when visible
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    if (document.visibilityState === "visible") {
-      callback(); // Initial request
+    if (!options.skipInitialCall && document.visibilityState === "visible") {
+      fetchData(); // Initial request only if visible
     }
 
     return () => {
       isCancelled = true;
+      controller.abort();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, dependencies);
+  }, dependencies); // Note: Memoize asyncGetterMethod and setterMethod with useCallback for optimal performance.
 };
 
 /**

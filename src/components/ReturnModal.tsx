@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
 import Offer from "@/app/types/Offer";
 import {
@@ -118,30 +118,40 @@ const ReturnModal = ({
     return new Decimal(soldTokenAllowance).gte(soldTokenInWei);
   }, [soldTokenInWei, soldTokenAllowance]);
 
-  const getSoldTokenBalance = async () =>
-    await getTokenBalance(soldToken?.address, connectedAddress);
-  const getSoldTokenAllowance = async () =>
-    await getTokenAllowance(
-      soldToken?.address,
-      connectedAddress,
-      CONSTANTS.RISKOPHOBE_CONTRACT
-    );
+  const getSoldTokenBalance = useCallback(
+    async () => await getTokenBalance(soldToken?.address, connectedAddress),
+    [soldToken?.address, connectedAddress]
+  );
+  const getSoldTokenAllowance = useCallback(
+    async () =>
+      await getTokenAllowance(
+        soldToken?.address,
+        connectedAddress,
+        CONSTANTS.RISKOPHOBE_CONTRACT
+      ),
+    [soldToken?.address, connectedAddress]
+  );
 
-  const soldTokenBalanceAndAllowanceGetter = async (): Promise<
+  const soldTokenBalanceAndAllowanceGetter = useCallback(async (): Promise<
     [string, string]
   > => {
     if (!ethers.isAddress(connectedAddress))
       throw new Error("No connected address");
     if (!ethers.isAddress(soldToken?.address)) throw new Error("No sold token");
     return await Promise.all([getSoldTokenBalance(), getSoldTokenAllowance()]);
-  };
-  const soldTokenBalanceAndAllowanceSetter = ([newBalance, newAllowance]: [
-    string,
-    string
-  ]): void => {
-    setSoldTokenBalance(newBalance);
-    setSoldTokenAllowance(newAllowance);
-  };
+  }, [
+    connectedAddress,
+    soldToken?.address,
+    getSoldTokenBalance,
+    getSoldTokenAllowance,
+  ]);
+  const soldTokenBalanceAndAllowanceSetter = useCallback(
+    ([newBalance, newAllowance]: [string, string]): void => {
+      setSoldTokenBalance(newBalance);
+      setSoldTokenAllowance(newAllowance);
+    },
+    []
+  );
   useAsyncEffect(
     soldTokenBalanceAndAllowanceGetter,
     soldTokenBalanceAndAllowanceSetter,

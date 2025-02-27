@@ -1,7 +1,7 @@
 "use client";
 
 import useStore from "@/store/useStore";
-import { Fragment, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useMemo, useRef, useState } from "react";
 import {
   useAsyncEffect,
   useVisibilityIntervalEffect,
@@ -18,7 +18,7 @@ import {
 import TokenSymbolAndLogo from "@/components/TokenSymbolAndLogo";
 import { getTokenDetails } from "@/utils/tokenMethods";
 import Link from "next/link";
-import { useAccount } from "wagmi";
+import { useAccount, useCall } from "wagmi";
 import dynamic from "next/dynamic";
 import Offer from "./types/Offer";
 import FiltersDropdown from "@/components/FiltersDropdown";
@@ -215,7 +215,7 @@ function App() {
     });
   }, [filteredOffers, selectedSortingOption]);
 
-  const depositsGetter = async (): Promise<Deposit[]> => {
+  const depositsGetter = useCallback(async (): Promise<Deposit[]> => {
     if (!ethers.isAddress(connectedAddress))
       throw new Error("No account connected");
     // Fetch user's deposits from subgraph
@@ -227,12 +227,12 @@ function App() {
     }
     const { deposits } = await response.json();
     return deposits;
-  };
-  const depositsSetter = (_deposits: Deposit[]) => {
+  }, [connectedAddress]);
+  const depositsSetter = useCallback((_deposits: Deposit[]) => {
     setDeposits(_deposits);
-  };
+  }, []);
   useAsyncEffect(depositsGetter, depositsSetter, [connectedAddress], {
-    onError: (error) => setDeposits([]),
+    onError: () => setDeposits([]),
   });
 
   const getOffersCount = (typeOption: string): number => {
