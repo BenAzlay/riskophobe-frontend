@@ -45,7 +45,7 @@ function App() {
   const router = useRouter();
 
   // Fetch offers every 60s from subgraph
-  const fetchOffers = async () => {
+  const fetchOffers = useCallback(async () => {
     try {
       // Fetch offers from subgraph
       const response = await fetch("/api/fetchOffers");
@@ -98,7 +98,7 @@ function App() {
     } catch (e) {
       console.error("fetchOffers ERROR", e);
     }
-  };
+  }, []);
   useVisibilityIntervalEffect(fetchOffers, 60000, []); // Refetch offers every 60s
 
   const filterTypeOptions = [
@@ -235,73 +235,85 @@ function App() {
     onError: () => setDeposits([]),
   });
 
-  const getOffersCount = (typeOption: string): number => {
-    switch (typeOption) {
-      case "created":
-        return createrOffers.length;
-      case "bought":
-        return boughtOffers.length;
-      default:
-        return offers.length;
-    }
-  };
-
-  const handleSelectSortingOption = (option: {
-    id: string;
-    label: string;
-    asc: boolean;
-  }) => {
-    setSelectedSortingOption({
-      ...option,
-      id: option.id as keyof Offer,
-    });
-  };
-
-  const filterButtons = () => (
-    <Fragment>
-      {/* Filter Buttons */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center w-full gap-4 mb-6 justify-start">
-        {/* Sorting dropdown */}
-        <FiltersDropdown
-          options={sortingOptions}
-          onSelectOption={handleSelectSortingOption}
-          selectedOption={selectedSortingOption}
-          prefix="Sort Offers by:"
-        />
-        <div className="join hidden sm:block">
-          {filterTypeOptions.map(({ id, label }) => (
-            <button
-              key={id}
-              className={`join-item btn btn-secondary btn-outline ${
-                filterType === id ? "btn-active" : ""
-              }`}
-              onClick={() => setFilterType(id)}
-            >
-              {label} ({abbreviateAmount(getOffersCount(id))})
-            </button>
-          ))}
-        </div>
-        {/* Token Filters */}
-        <div className="space-x-2 hidden lg:block">
-          {offerTokens.map((token) => (
-            <button
-              key={token.address}
-              className={`btn btn-outline btn-secondary ${
-                tokenFilter === token ? "btn-active" : ""
-              }`}
-              onClick={() =>
-                setTokenFilter(tokenFilter === token ? null : token)
-              }
-            >
-              <TokenSymbolAndLogo symbol={token.symbol} />
-            </button>
-          ))}
-        </div>
-      </div>
-    </Fragment>
+  const getOffersCount = useCallback(
+    (typeOption: string): number => {
+      switch (typeOption) {
+        case "created":
+          return createrOffers.length;
+        case "bought":
+          return boughtOffers.length;
+        default:
+          return offers.length;
+      }
+    },
+    [createrOffers, boughtOffers, offers]
   );
 
-  const emptyMessageBox = () => {
+  const handleSelectSortingOption = useCallback(
+    (option: { id: string; label: string; asc: boolean }) => {
+      setSelectedSortingOption({
+        ...option,
+        id: option.id as keyof Offer,
+      });
+    },
+    []
+  );
+
+  const filterButtons = useMemo(
+    () => (
+      <Fragment>
+        {/* Filter Buttons */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center w-full gap-4 mb-6 justify-start">
+          {/* Sorting dropdown */}
+          <FiltersDropdown
+            options={sortingOptions}
+            onSelectOption={handleSelectSortingOption}
+            selectedOption={selectedSortingOption}
+            prefix="Sort Offers by:"
+          />
+          <div className="join hidden sm:block">
+            {filterTypeOptions.map(({ id, label }) => (
+              <button
+                key={id}
+                className={`join-item btn btn-secondary btn-outline ${
+                  filterType === id ? "btn-active" : ""
+                }`}
+                onClick={() => setFilterType(id)}
+              >
+                {label} ({abbreviateAmount(getOffersCount(id))})
+              </button>
+            ))}
+          </div>
+          {/* Token Filters */}
+          <div className="space-x-2 hidden lg:block">
+            {offerTokens.map((token) => (
+              <button
+                key={token.address}
+                className={`btn btn-outline btn-secondary ${
+                  tokenFilter === token ? "btn-active" : ""
+                }`}
+                onClick={() =>
+                  setTokenFilter(tokenFilter === token ? null : token)
+                }
+              >
+                <TokenSymbolAndLogo symbol={token.symbol} />
+              </button>
+            ))}
+          </div>
+        </div>
+      </Fragment>
+    ),
+    [
+      filterType,
+      offerTokens,
+      tokenFilter,
+      sortingOptions,
+      selectedSortingOption,
+      getOffersCount,
+    ]
+  );
+
+  const emptyMessageBox = useMemo(() => {
     if (filteredOffers.length > 0) return null;
     if (!offersHaveLoaded.current) {
       return (
@@ -327,7 +339,7 @@ function App() {
         </p>
       </div>
     );
-  };
+  }, [filteredOffers.length]);
 
   return (
     <Fragment>
@@ -390,7 +402,7 @@ function App() {
         </div>
       </div>
       <div className="page-container">
-        {filterButtons()}
+        {filterButtons}
         <div
           id="offers-grid"
           className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
@@ -399,7 +411,7 @@ function App() {
             <OfferItem offer={offer} key={index} />
           ))}
         </div>
-        {emptyMessageBox()}
+        {emptyMessageBox}
       </div>
     </Fragment>
   );

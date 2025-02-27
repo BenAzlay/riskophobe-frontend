@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 
 interface FilterOption {
   id: string;
@@ -112,4 +112,4 @@ const FiltersDropdown = ({
   );
 };
 
-export default FiltersDropdown;
+export default memo(FiltersDropdown);

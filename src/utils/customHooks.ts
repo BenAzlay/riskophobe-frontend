@@ -109,27 +109,29 @@ export const useVisibilityEffect = <T>(
  * Triggers when the page is focused again and also triggers on a set interval.
  */
 export const useVisibilityIntervalEffect = (
-  callback: () => void,
+  callback: (signal?: AbortSignal) => void,
   intervalSeconds: number,
   dependencies: unknown[]
 ): void => {
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
+    const controller = new AbortController();
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
         clearInterval(intervalId); // Page is out of focus, stop making backend calls
       } else {
-        callback(); // Initial request
+        callback(controller.signal); // Initial request
         intervalId = setInterval(callback, intervalSeconds * 1000); // Restart interval
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    callback(); // Initial request
+    callback(controller.signal); // Initial request
     intervalId = setInterval(callback, intervalSeconds * 1000);
 
     return () => {
+      controller.abort();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearInterval(intervalId); // Cleanup interval on unmount
     };
