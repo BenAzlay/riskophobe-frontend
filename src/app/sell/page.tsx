@@ -239,28 +239,37 @@ const Sell = () => {
     },
   });
 
-  useEffect(() => {
-    const getAndSetTokensList = async () => {
+  useAsyncEffect(
+    async () => {
       const tokenDetails = await getTokenDetails(
         CONSTANTS.TOKENS.map(({ address }) => address)
       );
+      return tokenDetails;
+    },
+    (tokenDetails) => {
       setTokensList(tokenDetails);
       setSoldToken(tokenDetails[0]);
       setCollateralToken(tokenDetails[1]);
-    };
-    getAndSetTokensList();
-  }, []);
+    },
+    [],
+    {
+      onError: (error) => console.error("Failed to load tokens:", error),
+    }
+  );
 
   const getSoldTokenBalance = useCallback(
     async () => await getTokenBalance(soldToken?.address, connectedAddress),
     [soldToken?.address, connectedAddress]
   );
-  const getSoldTokenAllowance = useCallback(async () =>
-    await getTokenAllowance(
-      soldToken?.address,
-      connectedAddress,
-      CONSTANTS.RISKOPHOBE_CONTRACT
-    ), [soldToken?.address, connectedAddress]);
+  const getSoldTokenAllowance = useCallback(
+    async () =>
+      await getTokenAllowance(
+        soldToken?.address,
+        connectedAddress,
+        CONSTANTS.RISKOPHOBE_CONTRACT
+      ),
+    [soldToken?.address, connectedAddress]
+  );
 
   const soldTokenBalanceAndAllowanceGetter = useCallback(async (): Promise<
     [string, string]
@@ -296,33 +305,34 @@ const Sell = () => {
     }
   );
 
-  const handleSoldTokenChange = (token: ERC20Token) => {
-    setSoldToken(token);
-
-    // If selected soldToken matches collateralToken, change collateralToken
-    if (token.address === collateralToken?.address) {
+  const swapIfMatching = (
+    newToken: ERC20Token,
+    currentToken: ERC20Token | null,
+    setOtherToken: (token: ERC20Token) => void
+  ) => {
+    if (newToken.address === currentToken?.address) {
       const alternativeToken = tokensList.find(
-        (t) => t.address !== token.address
+        (t) => t.address !== newToken.address
       );
-      if (alternativeToken) {
-        setCollateralToken(alternativeToken);
-      }
+      if (alternativeToken) setOtherToken(alternativeToken);
     }
   };
 
-  const handleCollateralTokenChange = (token: ERC20Token) => {
-    setCollateralToken(token);
+  const handleSoldTokenChange = useCallback(
+    (token: ERC20Token) => {
+      setSoldToken(token);
+      swapIfMatching(token, collateralToken, setCollateralToken);
+    },
+    [collateralToken, tokensList]
+  );
 
-    // If selected collateralToken matches soldToken, change soldToken
-    if (token.address === soldToken?.address) {
-      const alternativeToken = tokensList.find(
-        (t) => t.address !== token.address
-      );
-      if (alternativeToken) {
-        setSoldToken(alternativeToken);
-      }
-    }
-  };
+  const handleCollateralTokenChange = useCallback(
+    (token: ERC20Token) => {
+      setCollateralToken(token);
+      swapIfMatching(token, soldToken, setSoldToken);
+    },
+    [soldToken, tokensList]
+  );
 
   const onChangeStartDate = (_startDate: Date | null) => {
     if (!_startDate) return;
@@ -339,30 +349,40 @@ const Sell = () => {
     onChangeEndDate(end);
   };
 
-  const offerSummaryContent = () => (
-    <Fragment>
-      <p>
-        💱 Exchange rate:{" "}
-        <Tooltip message={numberWithCommas(collateralPerSoldToken)}>
-          {abbreviateAmount(collateralPerSoldToken, "", 3)}
-        </Tooltip>{" "}
-        {collateralToken?.symbol} per 1 {soldToken?.symbol}
-      </p>
-      <p>🤑 User fee: {creatorFee}%</p>
-      <p>
-        🏁 Starts on: <ClientOnlyDate date={startDate} />
-      </p>
-      <p>
-        ⌛ Ends on: <ClientOnlyDate date={endDate} />
-      </p>
-    </Fragment>
+  const offerSummaryContent = useMemo(
+    () => (
+      <Fragment>
+        <p>
+          💱 Exchange rate:{" "}
+          <Tooltip message={numberWithCommas(collateralPerSoldToken)}>
+            {abbreviateAmount(collateralPerSoldToken, "", 3)}
+          </Tooltip>{" "}
+          {collateralToken?.symbol} per 1 {soldToken?.symbol}
+        </p>
+        <p>🤑 User fee: {creatorFee}%</p>
+        <p>
+          🏁 Starts on: <ClientOnlyDate date={startDate} />
+        </p>
+        <p>
+          ⌛ Ends on: <ClientOnlyDate date={endDate} />
+        </p>
+      </Fragment>
+    ),
+    [
+      collateralPerSoldToken,
+      collateralToken?.symbol,
+      soldToken?.symbol,
+      creatorFee,
+      startDate,
+      endDate,
+    ]
   );
 
   const offerSummary = () => (
     <div className="collapse  collapse-arrow border-2 border-primary rounded-md glass-bg">
       <input type="checkbox" />
       <div className="collapse-title text-xl font-medium">Offer summary</div>
-      <div className="collapse-content">{offerSummaryContent()}</div>
+      <div className="collapse-content">{offerSummaryContent}</div>
     </div>
   );
 
