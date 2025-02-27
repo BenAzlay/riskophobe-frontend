@@ -3,7 +3,7 @@
 import useStore from "@/store/useStore";
 import React, { Fragment, useState } from "react";
 import { useAccount, useDisconnect } from "wagmi";
-import { usePathname } from "next/navigation"; // For detecting active route
+import { usePathname, useRouter } from "next/navigation"; // For detecting active route
 import Link from "next/link"; // For client-side navigation
 import Modal from "./Modal";
 import { addressShorten } from "@/utils/utilFunc";
@@ -17,6 +17,7 @@ const Navbar = () => {
   const { disconnectAsync } = useDisconnect();
   const pathname = usePathname(); // Detect the current route
   const isMobile = useIsMobile();
+  const router = useRouter();
 
   const handleDisconnect = async () => {
     try {
@@ -70,7 +71,7 @@ const Navbar = () => {
         <div className="flex-1">
           <div className="flex items-center">
             {/* Logo */}
-            <div className="text-primary font-nimbus  text-4xl sm:text-3xl font-bold">
+            <div onClick={() => router.push('/')} className="text-primary font-nimbus  text-4xl sm:text-3xl font-bold cursor-pointer">
               <span className="hidden md:inline">Riskophobe</span>
               <span className="md:hidden">R</span>
             </div>
