@@ -1,5 +1,5 @@
 import CreatorFee from "@/app/types/CreatorFee";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import TokenSymbolAndLogo from "./TokenSymbolAndLogo";
 import {
   abbreviateAmount,
@@ -20,43 +20,52 @@ const FeesTable = ({ creatorFees, onSelectFee }: FeesTableProps) => {
     setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
   };
 
-  const sortedFees = [...creatorFees].sort((a, b) => {
-    const amountA = BigInt(a.amount);
-    const amountB = BigInt(b.amount);
+  const sortedFees = useMemo(() => {
+    return [...creatorFees].sort((a, b) => {
+      const amountA = BigInt(a.amount);
+      const amountB = BigInt(b.amount);
+      return sortOrder === "asc"
+        ? amountA > amountB
+          ? 1
+          : -1
+        : amountA < amountB
+        ? 1
+        : -1;
+    });
+  }, [creatorFees, sortOrder]);
 
-    if (sortOrder === "asc") return amountA > amountB ? 1 : -1;
-    return amountA < amountB ? 1 : -1;
-  });
-
-  const row = (fee: CreatorFee) => {
-    const {
-      id: feeId,
-      amount: amountWei,
-      token: { symbol, decimals },
-    } = fee;
-    const amount = convertQuantityFromWei(amountWei, decimals);
-    return (
-      <tr key={feeId} className="hover:bg-base-200">
-        <td>
-          <TokenSymbolAndLogo symbol={symbol} />
-        </td>
-        <td>
-          <Tooltip message={numberWithCommas(amount)}>
-            {abbreviateAmount(amount, "", 3)}
-          </Tooltip>
-        </td>
-        <td>
-          <button
-            className="btn btn-primary btn-sm font-semibold"
-            onClick={() => onSelectFee(fee)}
-            disabled={amountWei <= 0}
-          >
-            CLAIM {symbol}
-          </button>
-        </td>
-      </tr>
-    );
-  };
+  const Row = useCallback(
+    ({ fee }: { fee: CreatorFee }) => {
+      const {
+        id: feeId,
+        amount: amountWei,
+        token: { symbol, decimals },
+      } = fee;
+      const amount = convertQuantityFromWei(amountWei, decimals);
+      return (
+        <tr key={feeId} className="hover:bg-base-200">
+          <td>
+            <TokenSymbolAndLogo symbol={symbol} />
+          </td>
+          <td>
+            <Tooltip message={numberWithCommas(amount)}>
+              {abbreviateAmount(amount, "", 3)}
+            </Tooltip>
+          </td>
+          <td>
+            <button
+              className="btn btn-primary btn-sm font-semibold"
+              onClick={() => onSelectFee(fee)}
+              disabled={amountWei <= 0}
+            >
+              CLAIM {symbol}
+            </button>
+          </td>
+        </tr>
+      );
+    },
+    [onSelectFee]
+  );
 
   return (
     <div className="overflow-x-auto">
@@ -71,7 +80,7 @@ const FeesTable = ({ creatorFees, onSelectFee }: FeesTableProps) => {
             <th></th>
           </tr>
         </thead>
-        <tbody>{sortedFees.map((fee) => row(fee))}</tbody>
+        <tbody>{sortedFees.map((fee, id) => <Row key={id} fee={fee} />)}</tbody>
       </table>
     </div>
   );
