@@ -130,11 +130,9 @@ const ReturnModal = ({
   const soldTokenBalanceAndAllowanceGetter = async (): Promise<
     [string, string]
   > => {
-    if (
-      !ethers.isAddress(soldToken?.address) ||
-      !ethers.isAddress(connectedAddress)
-    )
-      return ["0", "0"];
+    if (!ethers.isAddress(connectedAddress))
+      throw new Error("No connected address");
+    if (!ethers.isAddress(soldToken?.address)) throw new Error("No sold token");
     return await Promise.all([getSoldTokenBalance(), getSoldTokenAllowance()]);
   };
   const soldTokenBalanceAndAllowanceSetter = ([newBalance, newAllowance]: [
@@ -147,7 +145,13 @@ const ReturnModal = ({
   useAsyncEffect(
     soldTokenBalanceAndAllowanceGetter,
     soldTokenBalanceAndAllowanceSetter,
-    [connectedAddress, collateralToken?.address]
+    [connectedAddress, soldToken?.address],
+    {
+      onError: () => {
+        setSoldTokenBalance("0");
+        setSoldTokenAllowance("0");
+      },
+    }
   );
 
   const handleSoldTokenInChange = (newValue: number): void => {

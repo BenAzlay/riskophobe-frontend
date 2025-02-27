@@ -216,26 +216,24 @@ function App() {
   }, [filteredOffers, selectedSortingOption]);
 
   const depositsGetter = async (): Promise<Deposit[]> => {
-    try {
-      if (!ethers.isAddress(connectedAddress))
-        throw new Error("No account connected");
-      // Fetch user's deposits from subgraph
-      const response = await fetch(
-        `/api/fetchDeposits?participant=${connectedAddress}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch deposits for user");
-      }
-      const { deposits } = await response.json();
-      return deposits;
-    } catch (e) {
-      return [];
+    if (!ethers.isAddress(connectedAddress))
+      throw new Error("No account connected");
+    // Fetch user's deposits from subgraph
+    const response = await fetch(
+      `/api/fetchDeposits?participant=${connectedAddress}`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch deposits for user");
     }
+    const { deposits } = await response.json();
+    return deposits;
   };
   const depositsSetter = (_deposits: Deposit[]) => {
     setDeposits(_deposits);
   };
-  useAsyncEffect(depositsGetter, depositsSetter, [connectedAddress]);
+  useAsyncEffect(depositsGetter, depositsSetter, [connectedAddress], {
+    onError: (error) => setDeposits([]),
+  });
 
   const getOffersCount = (typeOption: string): number => {
     switch (typeOption) {

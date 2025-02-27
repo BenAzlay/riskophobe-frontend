@@ -23,42 +23,43 @@ const Claim = () => {
   const [selectedFee, setSelectedFee] = useState<CreatorFee | null>(null);
 
   const creatorFeesGetter = async (): Promise<CreatorFee[]> => {
-    try {
-      if (!ethers.isAddress(connectedAddress))
-        throw new Error("No account connected");
-      setFeesLoading(true);
-      // Fetch user's creatorFees from subgraph
-      const response = await fetch(
-        `/api/fetchCreatorFees?creator=${connectedAddress}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch creator fees for user");
-      }
-      const { creatorFees: subgraphCreatorFees } = (await response.json()) as {
-        creatorFees: SubgraphCreatorFee[];
-      };
-      const tokenAddresses = subgraphCreatorFees.map((fee) => fee.token.id);
-      const tokensWithDetails = await getTokenDetails(tokenAddresses);
-      // Add token logos to convert them into ERC20Token type
-      const creatorFees = subgraphCreatorFees.map((fee) => {
-        const token = tokensWithDetails.find((token) =>
-          compareEthereumAddresses(token.address, fee.token.id)
-        )!;
-        return {
-          ...fee,
-          token,
-        };
-      });
-      return creatorFees;
-    } catch (e) {
-      return [];
+    if (!ethers.isAddress(connectedAddress))
+      throw new Error("No account connected");
+    setFeesLoading(true);
+    // Fetch user's creatorFees from subgraph
+    const response = await fetch(
+      `/api/fetchCreatorFees?creator=${connectedAddress}`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch creator fees for user");
     }
+    const { creatorFees: subgraphCreatorFees } = (await response.json()) as {
+      creatorFees: SubgraphCreatorFee[];
+    };
+    const tokenAddresses = subgraphCreatorFees.map((fee) => fee.token.id);
+    const tokensWithDetails = await getTokenDetails(tokenAddresses);
+    // Add token logos to convert them into ERC20Token type
+    const creatorFees = subgraphCreatorFees.map((fee) => {
+      const token = tokensWithDetails.find((token) =>
+        compareEthereumAddresses(token.address, fee.token.id)
+      )!;
+      return {
+        ...fee,
+        token,
+      };
+    });
+    return creatorFees;
   };
   const creatorFeesSetter = (_creatorFees: CreatorFee[]) => {
     setCreatorFees(_creatorFees);
     setFeesLoading(false);
   };
-  useAsyncEffect(creatorFeesGetter, creatorFeesSetter, [connectedAddress]);
+  useAsyncEffect(creatorFeesGetter, creatorFeesSetter, [connectedAddress], {
+    onError: () => {
+      setCreatorFees([]);
+      setFeesLoading(false);
+    },
+  });
 
   const emptyMessageBox = () => {
     if (!ethers.isAddress(connectedAddress)) {

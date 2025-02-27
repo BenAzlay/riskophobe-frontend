@@ -1,28 +1,42 @@
-import { useEffect, useRef, useState } from 'react';
-import { getCurrentTimestampSeconds } from './utilFunc';
+import { useEffect, useRef, useState } from "react";
+import { getCurrentTimestampSeconds } from "./utilFunc";
 
 /**
  * Custom useEffect hook that ensures only the async call result from the latest dependencies is set.
  */
 export const useAsyncEffect = <T>(
-  asyncFetchMethod: () => Promise<T>,
+  asyncGetterMethod: (signal?: AbortSignal) => Promise<T>,
   setterMethod: (value: T) => void,
-  dependencies: unknown[]
+  dependencies: unknown[],
+  options: {
+    onError?: (error: unknown) => void; // Callback for error handling
+    skipInitialCall?: boolean; // Option to skip the initial fetch
+  } = {}
 ): void => {
   useEffect(() => {
-    let ignore = false;
+    let isCancelled = false;
+    const controller = new AbortController();
 
     const callback = async () => {
-      const payload = await asyncFetchMethod();
-      if (!ignore) {
-        setterMethod(payload);
+      try {
+        const payload = await asyncGetterMethod(controller.signal);
+        if (!isCancelled) {
+          setterMethod(payload);
+        }
+      } catch (error) {
+        if (!isCancelled && options.onError) {
+          options.onError(error);
+        }
       }
     };
 
-    callback(); // Initial request
+    if (!options.skipInitialCall) {
+      callback();
+    }
 
     return () => {
-      ignore = true;
+      isCancelled = true;
+      controller.abort();
     };
   }, dependencies);
 };
@@ -32,40 +46,40 @@ export const useAsyncEffect = <T>(
  * Triggers when the page is focused again.
  */
 export const useVisibilityEffect = <T>(
-  asyncFetchMethod: () => Promise<T>,
+  asyncGetterMethod: () => Promise<T>,
   setterMethod: (value: T) => void,
   dependencies: unknown[]
 ): void => {
   useEffect(() => {
-    let ignore = false;
+    let isCancelled = false;
 
     const callback = async () => {
-      const payload = await asyncFetchMethod();
-      if (!ignore) {
+      const payload = await asyncGetterMethod();
+      if (!isCancelled) {
         setterMethod(payload);
       }
     };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        ignore = true; // Stop making the request if the app is out of focus
+      if (document.visibilityState === "hidden") {
+        isCancelled = true; // Stop making the request if the app is out of focus
       } else {
-        ignore = false; // Resume making the request when the app is in focus
-        if (!ignore && document.visibilityState === 'visible') {
+        isCancelled = false; // Resume making the request when the app is in focus
+        if (!isCancelled && document.visibilityState === "visible") {
           callback();
         }
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    if (document.visibilityState === 'visible') {
+    if (document.visibilityState === "visible") {
       callback(); // Initial request
     }
 
     return () => {
-      ignore = true;
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      isCancelled = true;
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, dependencies);
 };
@@ -83,7 +97,7 @@ export const useVisibilityIntervalEffect = (
     let intervalId: NodeJS.Timeout;
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
+      if (document.visibilityState === "hidden") {
         clearInterval(intervalId); // Page is out of focus, stop making backend calls
       } else {
         callback(); // Initial request
@@ -91,12 +105,12 @@ export const useVisibilityIntervalEffect = (
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     callback(); // Initial request
     intervalId = setInterval(callback, intervalSeconds * 1000);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearInterval(intervalId); // Cleanup interval on unmount
     };
   }, dependencies);
@@ -119,7 +133,9 @@ export const usePrevious = <T>(value: T): T | undefined => {
  * Hook to return the current timestamp in seconds, updated every second.
  */
 export const useCurrentTimestamp = (): number => {
-  const [currentTs, setCurrentTs] = useState<number>(getCurrentTimestampSeconds()); // Initialize with the current timestamp
+  const [currentTs, setCurrentTs] = useState<number>(
+    getCurrentTimestampSeconds()
+  ); // Initialize with the current timestamp
 
   useEffect(() => {
     const interval = setInterval(() => {

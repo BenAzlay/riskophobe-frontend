@@ -124,11 +124,10 @@ const BuyModal = ({ visible, onClose, offer, deposit }: BuyModalProps) => {
   const collateralBalanceAndAllowanceGetter = async (): Promise<
     [string, string]
   > => {
-    if (
-      !ethers.isAddress(collateralToken?.address) ||
-      !ethers.isAddress(connectedAddress)
-    )
-      return ["0", "0"];
+    if (!ethers.isAddress(connectedAddress))
+      throw new Error("No connected address");
+    if (!ethers.isAddress(collateralToken?.address))
+      throw new Error("No collateral token");
     return await Promise.all([
       getCollateralBalance(),
       getCollateralAllowance(),
@@ -144,7 +143,13 @@ const BuyModal = ({ visible, onClose, offer, deposit }: BuyModalProps) => {
   useAsyncEffect(
     collateralBalanceAndAllowanceGetter,
     collateralBalanceAndAllowanceSetter,
-    [connectedAddress, collateralToken?.address]
+    [connectedAddress, collateralToken?.address],
+    {
+      onError: () => {
+        setCollateralBalance("0");
+        setCollateralAllowance("0");
+      },
+    }
   );
 
   const handleCollateralInChange = (newValue: number): void => {

@@ -256,11 +256,9 @@ const Sell = () => {
   const soldTokenBalanceAndAllowanceGetter = async (): Promise<
     [string, string]
   > => {
-    if (
-      !ethers.isAddress(soldToken?.address) ||
-      !ethers.isAddress(connectedAddress)
-    )
-      return ["0", "0"];
+    if (!ethers.isAddress(connectedAddress))
+      throw new Error("No connected address");
+    if (!ethers.isAddress(soldToken?.address)) throw new Error("No sold token");
     soldTokenBalanceIsLoaded.current = false;
     return await Promise.all([getSoldTokenBalance(), getSoldTokenAllowance()]);
   };
@@ -275,7 +273,13 @@ const Sell = () => {
   useAsyncEffect(
     soldTokenBalanceAndAllowanceGetter,
     soldTokenBalanceAndAllowanceSetter,
-    [connectedAddress, soldToken?.address]
+    [connectedAddress, soldToken?.address],
+    {
+      onError: () => {
+        setSoldTokenBalance("0");
+        setSoldTokenAllowance("0");
+      },
+    }
   );
 
   const handleSoldTokenChange = (token: ERC20Token) => {

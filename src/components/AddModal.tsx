@@ -67,16 +67,14 @@ const AddModal = ({ visible, onClose, offer }: AddModalProps) => {
   const soldTokenBalanceAndAllowanceGetter = async (): Promise<
     [string, string]
   > => {
-    if (
-      !ethers.isAddress(soldToken?.address) ||
-      !ethers.isAddress(connectedAddress)
-    )
-      return ["0", "0"];
+    if (!ethers.isAddress(connectedAddress))
+      throw new Error("No connected address");
+    if (!ethers.isAddress(soldToken?.address)) throw new Error("No sold token");
     return await Promise.all([getSoldTokenBalance(), getSoldTokenAllowance()]);
   };
   const soldTokenBalanceAndAllowanceSetter = ([newBalance, newAllowance]: [
     string,
-    string,
+    string
   ]): void => {
     setSoldTokenBalance(newBalance);
     setSoldTokenAllowance(newAllowance);
@@ -84,7 +82,13 @@ const AddModal = ({ visible, onClose, offer }: AddModalProps) => {
   useAsyncEffect(
     soldTokenBalanceAndAllowanceGetter,
     soldTokenBalanceAndAllowanceSetter,
-    [connectedAddress, soldToken?.address]
+    [connectedAddress, soldToken?.address],
+    {
+      onError: () => {
+        setSoldTokenBalance("0");
+        setSoldTokenAllowance("0");
+      },
+    }
   );
 
   // Reset txError after 10 seconds
@@ -132,8 +136,7 @@ const AddModal = ({ visible, onClose, offer }: AddModalProps) => {
     args: [BigInt(offerId), BigInt(amountToAddWei)],
     onSuccess: async () => {
       // Update offer by increasing its soldTokenAmount
-      const newSoldTokenAmount =
-            soldTokenAmount + Number(amountToAddWei);
+      const newSoldTokenAmount = soldTokenAmount + Number(amountToAddWei);
       updateOffer(offerId, newSoldTokenAmount, collateralBalance);
       // Reset input
       setAmountToAdd("0");
