@@ -1,3 +1,4 @@
+import useIsMobile from "@/utils/useIsMobile";
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -28,6 +29,8 @@ const DateRangePicker = ({
 }: DateRangePickerProps) => {
   const [startDate, setStartDate] = useState<Date | null>(defaultStartDate);
   const [endDate, setEndDate] = useState<Date | null>(defaultEndDate);
+
+  const isMobile = useIsMobile();
 
   const handleDateChange = (dates: [Date | null, Date | null]) => {
     const [start, end] = dates;
@@ -79,7 +82,7 @@ const DateRangePicker = ({
         />
       }
       minDate={new Date()} // Disable past dates
-      withPortal
+      withPortal={isMobile}
     />
   );
 };

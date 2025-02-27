@@ -77,7 +77,7 @@ const RangeSlider = ({
             left: `${((value - min) / (max - min)) * 100}%`,
             transform: "translate(-50%, -50%)",
             top: "50%",
-            zIndex: 20,
+            zIndex: 1,
           }}
         >
           {tokenSymbol ? (
