@@ -22,6 +22,7 @@ import { useAccount } from "wagmi";
 import dynamic from "next/dynamic";
 import Offer from "./types/Offer";
 import FiltersDropdown from "@/components/FiltersDropdown";
+import { useRouter } from "next/navigation";
 
 interface SortingOption {
   id: keyof Offer;
@@ -41,6 +42,7 @@ function App() {
   const offersHaveLoaded = useRef(false);
   const { setOffers, offers, setDeposits, deposits } = useStore();
   const { address: connectedAddress } = useAccount();
+  const router = useRouter();
 
   // Fetch offers every 60s from subgraph
   const fetchOffers = async () => {
@@ -345,8 +347,8 @@ function App() {
               🤑 Reclaim your investment safely
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full sm:w-fit">
-              <Link
-                href="/sell"
+              <button
+                onClick={() => router.push("/sell")}
                 className="btn btn-outline btn-primary font-semibold text-lg"
               >
                 <svg
@@ -364,9 +366,9 @@ function App() {
                   />
                 </svg>
                 Create an Offer
-              </Link>
-              <Link
-                href="/claim"
+              </button>
+              <button
+                onClick={() => router.push("/claim")}
                 className="btn btn-outline btn-primary font-semibold text-lg"
               >
                 <svg
@@ -384,7 +386,7 @@ function App() {
                   />
                 </svg>
                 Claim Rewards
-              </Link>
+              </button>
             </div>
           </div>
         </div>
