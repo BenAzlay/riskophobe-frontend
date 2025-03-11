@@ -21,7 +21,7 @@ const TransactionButton = ({
         onClick={onClickAction}
         className="btn btn-primary w-full"
       >
-        {loading ? <span className="loading loading-spinner"></span> : null}
+        {loading ? <span data-testid="loading-spinner" className="loading loading-spinner"></span> : null}
         {children}
       </button>
       {!!errorMessage ? (
